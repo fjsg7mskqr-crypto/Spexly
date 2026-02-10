@@ -3,58 +3,176 @@
 import { createClient } from '@/lib/supabase/server';
 import type { Project, CanvasData } from '@/types/project';
 import type { SpexlyNode, SpexlyEdge } from '@/types/nodes';
+import {
+  validateProjectName,
+  validateCanvasData,
+  validateProjectId,
+} from '@/lib/validation/validators';
+import {
+  AuthenticationError,
+  DatabaseError,
+  ValidationError,
+  NotFoundError,
+  RateLimitError,
+  logError,
+} from '@/lib/errors';
+import {
+  projectRateLimiter,
+  canvasSaveRateLimiter,
+  checkRateLimit,
+} from '@/lib/rate-limit/limiter';
 
 async function getAuthUserId(): Promise<string> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not authenticated');
+  if (!user) throw new AuthenticationError();
   return user.id;
 }
 
-export async function getProjects(): Promise<Project[]> {
-  const userId = await getAuthUserId();
+async function getUserTier(userId: string): Promise<'free' | 'pro'> {
   const supabase = await createClient();
-
   const { data, error } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('user_id', userId)
-    .order('updated_at', { ascending: false });
+    .from('profiles')
+    .select('tier')
+    .eq('id', userId)
+    .single();
 
-  if (error) throw new Error(error.message);
-  return (data ?? []) as unknown as Project[];
+  if (error || !data) {
+    // Default to free tier if profile doesn't exist yet
+    return 'free';
+  }
+
+  return data.tier as 'free' | 'pro';
+}
+
+export async function getProjects(): Promise<Project[]> {
+  try {
+    const userId = await getAuthUserId();
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('user_id', userId)
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      logError(error, { action: 'getProjects', userId });
+      throw new DatabaseError('Failed to fetch projects');
+    }
+
+    return (data ?? []) as unknown as Project[];
+  } catch (error) {
+    // If it's already one of our custom errors, rethrow
+    if (error instanceof AuthenticationError || error instanceof DatabaseError) {
+      throw error;
+    }
+    // Log and throw generic error for unexpected errors
+    logError(error, { action: 'getProjects' });
+    throw new DatabaseError('Failed to fetch projects');
+  }
 }
 
 export async function getProject(id: string): Promise<Project | null> {
-  const userId = await getAuthUserId();
-  const supabase = await createClient();
+  try {
+    // Validate project ID format
+    const idValidation = validateProjectId(id);
+    if (!idValidation.valid) {
+      throw new ValidationError(idValidation.error || 'Invalid project ID');
+    }
 
-  const { data, error } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('id', id)
-    .eq('user_id', userId)
-    .single();
+    const userId = await getAuthUserId();
+    const supabase = await createClient();
 
-  if (error) return null;
-  return data as unknown as Project;
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .single();
+
+    if (error) {
+      // If not found, return null (expected behavior)
+      if (error.code === 'PGRST116') {
+        return null;
+      }
+      logError(error, { action: 'getProject', userId, projectId: id });
+      throw new DatabaseError('Failed to fetch project');
+    }
+
+    return data as unknown as Project;
+  } catch (error) {
+    if (error instanceof ValidationError || error instanceof AuthenticationError || error instanceof DatabaseError) {
+      throw error;
+    }
+    logError(error, { action: 'getProject', projectId: id });
+    throw new DatabaseError('Failed to fetch project');
+  }
 }
 
 export async function createProject(name?: string): Promise<Project> {
-  const userId = await getAuthUserId();
-  const supabase = await createClient();
+  try {
+    const userId = await getAuthUserId();
 
-  const { data, error } = await supabase
-    .from('projects')
-    .insert({
-      user_id: userId,
-      name: name || 'Untitled Project',
-    })
-    .select()
-    .single();
+    // Rate limit project creation
+    const rateLimitResult = await checkRateLimit(projectRateLimiter, userId);
+    if (!rateLimitResult.success) {
+      throw new RateLimitError('Too many requests. Please slow down.');
+    }
 
-  if (error) throw new Error(error.message);
-  return data as unknown as Project;
+    // Check tier limits (free tier: 3 projects max)
+    const tier = await getUserTier(userId);
+    if (tier === 'free') {
+      const supabase = await createClient();
+      const { count, error: countError } = await supabase
+        .from('projects')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
+
+      if (countError) {
+        logError(countError, { action: 'createProject:checkCount', userId });
+      }
+
+      if ((count || 0) >= 3) {
+        throw new ValidationError(
+          'Free tier limited to 3 projects. Upgrade to Pro for unlimited projects.'
+        );
+      }
+    }
+
+    // Use default name if not provided
+    const projectName = name || 'Untitled Project';
+
+    // Validate project name
+    const validation = validateProjectName(projectName);
+    if (!validation.valid) {
+      throw new ValidationError(validation.error || 'Invalid project name');
+    }
+
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('projects')
+      .insert({
+        user_id: userId,
+        name: validation.sanitized,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      logError(error, { action: 'createProject', userId });
+      throw new DatabaseError('Failed to create project');
+    }
+
+    return data as unknown as Project;
+  } catch (error) {
+    if (error instanceof ValidationError || error instanceof AuthenticationError || error instanceof DatabaseError) {
+      throw error;
+    }
+    logError(error, { action: 'createProject' });
+    throw new DatabaseError('Failed to create project');
+  }
 }
 
 export async function createProjectFromWizard(
@@ -62,23 +180,86 @@ export async function createProjectFromWizard(
   nodes: SpexlyNode[],
   edges: SpexlyEdge[],
 ): Promise<Project> {
-  const userId = await getAuthUserId();
-  const supabase = await createClient();
+  try {
+    const userId = await getAuthUserId();
 
-  const canvasData: CanvasData = { nodes, edges };
+    // Rate limit project creation
+    const rateLimitResult = await checkRateLimit(projectRateLimiter, userId);
+    if (!rateLimitResult.success) {
+      throw new RateLimitError('Too many requests. Please slow down.');
+    }
 
-  const { data, error } = await supabase
-    .from('projects')
-    .insert({
-      user_id: userId,
-      name,
-      canvas_data: canvasData as unknown as Record<string, unknown>,
-    })
-    .select()
-    .single();
+    // Check tier limits
+    const tier = await getUserTier(userId);
 
-  if (error) throw new Error(error.message);
-  return data as unknown as Project;
+    // Free tier: 3 projects max
+    if (tier === 'free') {
+      const supabase = await createClient();
+      const { count, error: countError } = await supabase
+        .from('projects')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
+
+      if (countError) {
+        logError(countError, { action: 'createProjectFromWizard:checkCount', userId });
+      }
+
+      if ((count || 0) >= 3) {
+        throw new ValidationError(
+          'Free tier limited to 3 projects. Upgrade to Pro for unlimited projects.'
+        );
+      }
+
+      // Free tier: 30 nodes max
+      if (nodes.length > 30) {
+        throw new ValidationError(
+          'Free tier limited to 30 nodes per project. Upgrade to Pro for unlimited nodes.'
+        );
+      }
+    }
+
+    // Validate project name
+    const nameValidation = validateProjectName(name);
+    if (!nameValidation.valid) {
+      throw new ValidationError(nameValidation.error || 'Invalid project name');
+    }
+
+    // Validate canvas data
+    const canvasValidation = validateCanvasData(nodes, edges);
+    if (!canvasValidation.valid) {
+      throw new ValidationError(canvasValidation.error || 'Invalid canvas data');
+    }
+
+    const supabase = await createClient();
+
+    const canvasData: CanvasData = {
+      nodes: canvasValidation.sanitizedNodes!,
+      edges: canvasValidation.sanitizedEdges!,
+    };
+
+    const { data, error } = await supabase
+      .from('projects')
+      .insert({
+        user_id: userId,
+        name: nameValidation.sanitized,
+        canvas_data: canvasData as unknown as Record<string, unknown>,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      logError(error, { action: 'createProjectFromWizard', userId });
+      throw new DatabaseError('Failed to create project');
+    }
+
+    return data as unknown as Project;
+  } catch (error) {
+    if (error instanceof ValidationError || error instanceof AuthenticationError || error instanceof DatabaseError) {
+      throw error;
+    }
+    logError(error, { action: 'createProjectFromWizard' });
+    throw new DatabaseError('Failed to create project');
+  }
 }
 
 export async function updateCanvasData(
@@ -86,42 +267,134 @@ export async function updateCanvasData(
   nodes: SpexlyNode[],
   edges: SpexlyEdge[],
 ): Promise<void> {
-  const userId = await getAuthUserId();
-  const supabase = await createClient();
+  try {
+    const userId = await getAuthUserId();
 
-  const canvasData: CanvasData = { nodes, edges };
+    // Rate limit canvas saves to prevent spam
+    const rateLimitResult = await checkRateLimit(canvasSaveRateLimiter, userId);
+    if (!rateLimitResult.success) {
+      throw new RateLimitError('Too many save requests. Please wait a moment.');
+    }
 
-  const { error } = await supabase
-    .from('projects')
-    .update({ canvas_data: canvasData as unknown as Record<string, unknown> })
-    .eq('id', id)
-    .eq('user_id', userId);
+    // Check tier limits (free tier: 30 nodes max)
+    const tier = await getUserTier(userId);
+    if (tier === 'free' && nodes.length > 30) {
+      throw new ValidationError(
+        'Free tier limited to 30 nodes per project. Upgrade to Pro for unlimited nodes.'
+      );
+    }
 
-  if (error) throw new Error(error.message);
+    // Validate project ID
+    const idValidation = validateProjectId(id);
+    if (!idValidation.valid) {
+      throw new ValidationError(idValidation.error || 'Invalid project ID');
+    }
+
+    // Validate canvas data
+    const canvasValidation = validateCanvasData(nodes, edges);
+    if (!canvasValidation.valid) {
+      throw new ValidationError(canvasValidation.error || 'Invalid canvas data');
+    }
+    const supabase = await createClient();
+
+    const canvasData: CanvasData = {
+      nodes: canvasValidation.sanitizedNodes!,
+      edges: canvasValidation.sanitizedEdges!,
+    };
+
+    const { error } = await supabase
+      .from('projects')
+      .update({ canvas_data: canvasData as unknown as Record<string, unknown> })
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) {
+      logError(error, { action: 'updateCanvasData', userId, projectId: id });
+      throw new DatabaseError('Failed to update canvas data');
+    }
+  } catch (error) {
+    if (error instanceof ValidationError || error instanceof AuthenticationError || error instanceof DatabaseError) {
+      throw error;
+    }
+    logError(error, { action: 'updateCanvasData', projectId: id });
+    throw new DatabaseError('Failed to update canvas data');
+  }
 }
 
 export async function renameProject(id: string, name: string): Promise<void> {
-  const userId = await getAuthUserId();
-  const supabase = await createClient();
+  try {
+    const userId = await getAuthUserId();
 
-  const { error } = await supabase
-    .from('projects')
-    .update({ name })
-    .eq('id', id)
-    .eq('user_id', userId);
+    // Rate limit project operations
+    const rateLimitResult = await checkRateLimit(projectRateLimiter, userId);
+    if (!rateLimitResult.success) {
+      throw new RateLimitError('Too many requests. Please slow down.');
+    }
 
-  if (error) throw new Error(error.message);
+    // Validate project ID
+    const idValidation = validateProjectId(id);
+    if (!idValidation.valid) {
+      throw new ValidationError(idValidation.error || 'Invalid project ID');
+    }
+
+    // Validate project name
+    const nameValidation = validateProjectName(name);
+    if (!nameValidation.valid) {
+      throw new ValidationError(nameValidation.error || 'Invalid project name');
+    }
+    const supabase = await createClient();
+
+    const { error } = await supabase
+      .from('projects')
+      .update({ name: nameValidation.sanitized })
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) {
+      logError(error, { action: 'renameProject', userId, projectId: id });
+      throw new DatabaseError('Failed to rename project');
+    }
+  } catch (error) {
+    if (error instanceof ValidationError || error instanceof AuthenticationError || error instanceof DatabaseError) {
+      throw error;
+    }
+    logError(error, { action: 'renameProject', projectId: id });
+    throw new DatabaseError('Failed to rename project');
+  }
 }
 
 export async function deleteProject(id: string): Promise<void> {
-  const userId = await getAuthUserId();
-  const supabase = await createClient();
+  try {
+    const userId = await getAuthUserId();
 
-  const { error } = await supabase
-    .from('projects')
-    .delete()
-    .eq('id', id)
-    .eq('user_id', userId);
+    // Rate limit project operations
+    const rateLimitResult = await checkRateLimit(projectRateLimiter, userId);
+    if (!rateLimitResult.success) {
+      throw new RateLimitError('Too many requests. Please slow down.');
+    }
 
-  if (error) throw new Error(error.message);
+    // Validate project ID
+    const idValidation = validateProjectId(id);
+    if (!idValidation.valid) {
+      throw new ValidationError(idValidation.error || 'Invalid project ID');
+    }
+    const supabase = await createClient();
+
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) {
+      logError(error, { action: 'deleteProject', userId, projectId: id });
+      throw new DatabaseError('Failed to delete project');
+    }
+  } catch (error) {
+    if (error instanceof ValidationError || error instanceof AuthenticationError || error instanceof DatabaseError) {
+      throw error;
+    }
+    logError(error, { action: 'deleteProject', projectId: id });
+    throw new DatabaseError('Failed to delete project');
+  }
 }

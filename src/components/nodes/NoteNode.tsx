@@ -19,6 +19,7 @@ function NoteNodeComponent({ id, data }: NodeProps<NoteNodeType>) {
       id={id}
       type="note"
       expanded={data.expanded}
+      completed={data.completed ?? false}
       headerLabel={data.title || 'Note'}
       subtitle={bodyPreview || 'Empty note'}
     >

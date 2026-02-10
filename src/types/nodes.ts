@@ -17,6 +17,7 @@ export interface IdeaNodeData {
   targetUser: string;
   coreProblem: string;
   expanded: boolean;
+  completed: boolean;
 }
 
 export interface FeatureNodeData {
@@ -26,6 +27,7 @@ export interface FeatureNodeData {
   priority: FeaturePriority;
   status: FeatureStatus;
   expanded: boolean;
+  completed: boolean;
 }
 
 export interface ScreenNodeData {
@@ -34,6 +36,7 @@ export interface ScreenNodeData {
   description: string;
   keyElements: string;
   expanded: boolean;
+  completed: boolean;
 }
 
 export interface TechStackNodeData {
@@ -42,6 +45,7 @@ export interface TechStackNodeData {
   toolName: string;
   notes: string;
   expanded: boolean;
+  completed: boolean;
 }
 
 export interface PromptNodeData {
@@ -50,6 +54,7 @@ export interface PromptNodeData {
   targetTool: TargetTool;
   resultNotes: string;
   expanded: boolean;
+  completed: boolean;
 }
 
 export interface NoteNodeData {
@@ -57,6 +62,7 @@ export interface NoteNodeData {
   title: string;
   body: string;
   expanded: boolean;
+  completed: boolean;
 }
 
 // Union of all data types

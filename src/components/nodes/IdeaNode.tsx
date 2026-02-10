@@ -17,6 +17,7 @@ function IdeaNodeComponent({ id, data }: NodeProps<IdeaNodeType>) {
       id={id}
       type="idea"
       expanded={data.expanded}
+      completed={data.completed ?? false}
       headerLabel={data.appName || 'Idea'}
       subtitle={data.appName ? data.appName : 'Untitled project'}
     >

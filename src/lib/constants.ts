@@ -44,6 +44,7 @@ export const NODE_TYPE_CONFIGS: Record<SpexlyNodeType, NodeTypeConfig> = {
       targetUser: '',
       coreProblem: '',
       expanded: true,
+      completed: false,
     },
   },
   feature: {
@@ -57,6 +58,7 @@ export const NODE_TYPE_CONFIGS: Record<SpexlyNodeType, NodeTypeConfig> = {
       priority: 'Must' as const,
       status: 'Planned' as const,
       expanded: true,
+      completed: false,
     },
   },
   screen: {
@@ -69,6 +71,7 @@ export const NODE_TYPE_CONFIGS: Record<SpexlyNodeType, NodeTypeConfig> = {
       description: '',
       keyElements: '',
       expanded: true,
+      completed: false,
     },
   },
   techStack: {
@@ -81,6 +84,7 @@ export const NODE_TYPE_CONFIGS: Record<SpexlyNodeType, NodeTypeConfig> = {
       toolName: '',
       notes: '',
       expanded: true,
+      completed: false,
     },
   },
   prompt: {
@@ -93,6 +97,7 @@ export const NODE_TYPE_CONFIGS: Record<SpexlyNodeType, NodeTypeConfig> = {
       targetTool: 'Claude' as const,
       resultNotes: '',
       expanded: true,
+      completed: false,
     },
   },
   note: {
@@ -104,6 +109,7 @@ export const NODE_TYPE_CONFIGS: Record<SpexlyNodeType, NodeTypeConfig> = {
       title: '',
       body: '',
       expanded: true,
+      completed: false,
     },
   },
 };

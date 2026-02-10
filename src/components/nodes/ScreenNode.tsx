@@ -17,6 +17,7 @@ function ScreenNodeComponent({ id, data }: NodeProps<ScreenNodeType>) {
       id={id}
       type="screen"
       expanded={data.expanded}
+      completed={data.completed ?? false}
       headerLabel={data.screenName || 'Screen'}
       subtitle={data.screenName || 'Page'}
     >

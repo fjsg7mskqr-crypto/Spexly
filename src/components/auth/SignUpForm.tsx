@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { signUp } from '@/lib/supabase/auth-helpers'
+import { PasswordStrength, validatePassword } from './PasswordStrength'
 
 export function SignUpForm() {
   const [email, setEmail] = useState('')
@@ -23,8 +24,10 @@ export function SignUpForm() {
       return
     }
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters')
+    // Validate password strength
+    const passwordValidation = validatePassword(password)
+    if (!passwordValidation.valid) {
+      setError(passwordValidation.error || 'Password does not meet requirements')
       setLoading(false)
       return
     }
@@ -78,9 +81,12 @@ export function SignUpForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            minLength={6}
+            minLength={12}
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
           />
+          <div className="mt-2">
+            <PasswordStrength password={password} />
+          </div>
         </div>
 
         <div>
@@ -93,7 +99,7 @@ export function SignUpForm() {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
-            minLength={6}
+            minLength={12}
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
           />
         </div>

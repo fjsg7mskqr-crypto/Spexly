@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Plus, Sparkles, LogOut } from 'lucide-react';
 import { signOut } from '@/lib/supabase/auth-helpers';
 import { createProject, createProjectFromWizard, renameProject, deleteProject } from '@/app/actions/projects';
@@ -80,7 +81,7 @@ export function DashboardLayout({ projects: initialProjects, userEmail }: Dashbo
       {/* Header */}
       <header className="border-b border-white/5 bg-slate-900/80 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <span className="text-xl font-bold tracking-tight text-white">Spexly</span>
+          <Image src="/spexly-logo-white.png" alt="Spexly" width={1349} height={603} className="h-12 w-auto" />
           <div className="flex items-center gap-4">
             <span className="text-sm text-slate-400">{userEmail}</span>
             <button

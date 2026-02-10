@@ -61,6 +61,7 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
       targetUser: input.targetUser,
       coreProblem: input.coreProblem,
       expanded: true,
+      completed: false,
     } as IdeaNodeData,
   } as SpexlyNode;
 
@@ -74,6 +75,7 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
       priority: 'Must' as const,
       status: 'Planned' as const,
       expanded: true,
+      completed: false,
     } as FeatureNodeData,
   })) as SpexlyNode[];
 
@@ -86,6 +88,7 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
       description: '',
       keyElements: '',
       expanded: true,
+      completed: false,
     } as ScreenNodeData,
   })) as SpexlyNode[];
 
@@ -99,6 +102,7 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
       targetTool: input.tool,
       resultNotes: '',
       expanded: true,
+      completed: false,
     } as PromptNodeData,
   } as SpexlyNode;
 

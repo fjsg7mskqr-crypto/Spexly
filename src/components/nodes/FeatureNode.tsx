@@ -20,6 +20,7 @@ function FeatureNodeComponent({ id, data }: NodeProps<FeatureNodeType>) {
       id={id}
       type="feature"
       expanded={data.expanded}
+      completed={data.completed ?? false}
       headerLabel={data.featureName || 'Feature'}
       subtitle={subtitle}
       headerExtra={<StatusBadge status={data.status} />}

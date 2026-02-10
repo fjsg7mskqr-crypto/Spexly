@@ -41,6 +41,7 @@ interface CanvasState {
   deleteNode: (nodeId: string) => void;
   deleteSelected: () => void;
   toggleNodeExpanded: (nodeId: string) => void;
+  toggleNodeCompleted: (nodeId: string) => void;
 
   undo: () => void;
   redo: () => void;
@@ -145,6 +146,17 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       nodes: get().nodes.map((node) =>
         node.id === nodeId
           ? { ...node, data: { ...node.data, expanded: !node.data.expanded } }
+          : node
+      ) as SpexlyNode[],
+    });
+  },
+
+  toggleNodeCompleted: (nodeId) => {
+    get().pushHistory();
+    set({
+      nodes: get().nodes.map((node) =>
+        node.id === nodeId
+          ? { ...node, data: { ...node.data, completed: !node.data.completed } }
           : node
       ) as SpexlyNode[],
     });

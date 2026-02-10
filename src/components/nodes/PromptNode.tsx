@@ -17,6 +17,7 @@ function PromptNodeComponent({ id, data }: NodeProps<PromptNodeType>) {
       id={id}
       type="prompt"
       expanded={data.expanded}
+      completed={data.completed ?? false}
       headerLabel={data.targetTool ? `Prompt → ${data.targetTool}` : 'Prompt'}
       subtitle={data.targetTool}
     >

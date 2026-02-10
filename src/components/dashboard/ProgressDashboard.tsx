@@ -43,6 +43,12 @@ export function ProgressDashboard({ isOpen, onClose }: ProgressDashboardProps) {
     return counts;
   }, [nodes]);
 
+  const completedCount = useMemo(() => {
+    return nodes.filter((n) => n.data.completed).length;
+  }, [nodes]);
+
+  const overallPercent = summary.totalNodes > 0 ? Math.round((completedCount / summary.totalNodes) * 100) : 0;
+
   const totalFeatures = ALL_STATUSES.reduce((sum, s) => sum + statusCounts[s], 0);
   const builtCount = statusCounts.Built;
   const completionPercent = totalFeatures > 0 ? Math.round((builtCount / totalFeatures) * 100) : 0;
@@ -77,11 +83,25 @@ export function ProgressDashboard({ isOpen, onClose }: ProgressDashboardProps) {
           </div>
         </div>
 
-        {/* Completion */}
+        {/* Overall Completion */}
+        {summary.totalNodes > 0 && (
+          <div className="mb-6">
+            <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-400">
+              Overall Progress
+            </h3>
+            <ProgressBar
+              percent={overallPercent}
+              color="#34D399"
+              label={`${overallPercent}% Complete (${completedCount}/${summary.totalNodes} nodes done)`}
+            />
+          </div>
+        )}
+
+        {/* Feature Completion */}
         {totalFeatures > 0 && (
           <div className="mb-6">
             <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-400">
-              Completion
+              Features Built
             </h3>
             <ProgressBar
               percent={completionPercent}

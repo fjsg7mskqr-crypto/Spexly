@@ -12,6 +12,7 @@ vi.mock('@/store/canvasStore', () => ({
       updateNodeData: mockUpdateNodeData,
       toggleNodeExpanded: vi.fn(),
       deleteNode: vi.fn(),
+      toggleNodeCompleted: vi.fn(),
     }),
 }))
 
@@ -34,6 +35,7 @@ function makeProps(overrides?: Partial<NodeProps<FeatureNodeType>>): NodeProps<F
       priority: 'Must',
       status: 'Planned',
       expanded: true,
+      completed: false,
     },
     type: 'feature',
     selected: false,

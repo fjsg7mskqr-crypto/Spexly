@@ -45,6 +45,58 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // Add security headers to all responses
+  const headers = supabaseResponse.headers
+
+  // Content Security Policy (CSP)
+  // Restricts sources for scripts, styles, images, etc.
+  headers.set(
+    'Content-Security-Policy',
+    [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // Next.js requires unsafe-eval and unsafe-inline
+      "style-src 'self' 'unsafe-inline'", // Tailwind requires unsafe-inline
+      "img-src 'self' data: https:", // Allow images from https sources and data URIs
+      "font-src 'self' data:",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.upstash.io", // Allow Supabase and Upstash connections
+      "frame-ancestors 'none'", // Prevent embedding in iframes
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join('; ')
+  )
+
+  // Strict-Transport-Security (HSTS)
+  // Forces HTTPS connections
+  headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+
+  // X-Frame-Options
+  // Prevents clickjacking attacks
+  headers.set('X-Frame-Options', 'DENY')
+
+  // X-Content-Type-Options
+  // Prevents MIME type sniffing
+  headers.set('X-Content-Type-Options', 'nosniff')
+
+  // Referrer-Policy
+  // Limits information sent in Referer header
+  headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+
+  // Permissions-Policy
+  // Restricts browser features
+  headers.set(
+    'Permissions-Policy',
+    [
+      'camera=()',
+      'microphone=()',
+      'geolocation=()',
+      'interest-cohort=()', // Disable FLoC
+    ].join(', ')
+  )
+
+  // X-DNS-Prefetch-Control
+  // Controls DNS prefetching
+  headers.set('X-DNS-Prefetch-Control', 'on')
+
   return supabaseResponse
 }
 

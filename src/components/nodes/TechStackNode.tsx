@@ -17,6 +17,7 @@ function TechStackNodeComponent({ id, data }: NodeProps<TechStackNodeType>) {
       id={id}
       type="techStack"
       expanded={data.expanded}
+      completed={data.completed ?? false}
       headerLabel={data.toolName || 'Tech Stack'}
       subtitle={data.category}
     >

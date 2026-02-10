@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowLeft, BarChart3, Cloud, CloudOff, Loader2 } from 'lucide-react';
 import { useCanvasStore } from '@/store/canvasStore';
 import { AddNodeMenu } from './AddNodeMenu';
@@ -54,7 +55,7 @@ export function Toolbar({ isDashboardOpen, onToggleDashboard }: ToolbarProps) {
           className="flex items-center gap-1.5 text-sm text-slate-400 transition-colors hover:text-white"
         >
           <ArrowLeft size={14} />
-          <span className="text-lg font-bold tracking-tight text-white">Spexly</span>
+          <Image src="/spexly-logo-white.png" alt="Spexly" width={1349} height={603} className="h-10 w-auto" />
         </Link>
         {projectName && (
           <>

@@ -12,6 +12,7 @@ vi.mock('@/store/canvasStore', () => ({
       updateNodeData: mockUpdateNodeData,
       toggleNodeExpanded: vi.fn(),
       deleteNode: vi.fn(),
+      toggleNodeCompleted: vi.fn(),
     }),
 }))
 
@@ -34,6 +35,7 @@ function makeProps(overrides?: Partial<NodeProps<IdeaNodeType>>): NodeProps<Idea
       targetUser: '',
       coreProblem: '',
       expanded: true,
+      completed: false,
     },
     type: 'idea',
     selected: false,
@@ -76,6 +78,7 @@ describe('IdeaNode', () => {
             targetUser: 'Developers',
             coreProblem: 'Testing is hard',
             expanded: true,
+            completed: false,
           },
         })}
       />
@@ -103,7 +106,7 @@ describe('IdeaNode', () => {
     render(
       <IdeaNode
         {...makeProps({
-          data: { appName: 'My Cool App', description: '', targetUser: '', coreProblem: '', expanded: true },
+          data: { appName: 'My Cool App', description: '', targetUser: '', coreProblem: '', expanded: true, completed: false },
         })}
       />
     )
