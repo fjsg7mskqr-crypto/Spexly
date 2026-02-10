@@ -1,0 +1,162 @@
+'use client';
+
+import { useCallback, useEffect, useState } from 'react';
+import {
+  ReactFlow,
+  Background,
+  BackgroundVariant,
+  MiniMap,
+  Controls,
+  type NodeTypes,
+  type DefaultEdgeOptions,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+
+import { useCanvasStore } from '@/store/canvasStore';
+import { Toolbar } from './Toolbar';
+import { ProgressDashboard } from '@/components/dashboard/ProgressDashboard';
+import { ProjectWizard } from '@/components/wizard/ProjectWizard';
+import { GRID_SNAP, CANVAS_BG_COLOR, CANVAS_DOT_COLOR, EDGE_COLOR } from '@/lib/constants';
+
+import IdeaNode from '@/components/nodes/IdeaNode';
+import FeatureNode from '@/components/nodes/FeatureNode';
+import ScreenNode from '@/components/nodes/ScreenNode';
+import TechStackNode from '@/components/nodes/TechStackNode';
+import PromptNode from '@/components/nodes/PromptNode';
+import NoteNode from '@/components/nodes/NoteNode';
+
+// Must be defined OUTSIDE the component to prevent re-registration on every render
+const nodeTypes: NodeTypes = {
+  idea: IdeaNode,
+  feature: FeatureNode,
+  screen: ScreenNode,
+  techStack: TechStackNode,
+  prompt: PromptNode,
+  note: NoteNode,
+};
+
+const defaultEdgeOptions: DefaultEdgeOptions = {
+  type: 'smoothstep',
+  animated: true,
+  style: { stroke: EDGE_COLOR, strokeWidth: 1.5 },
+};
+
+function isInputFocused(): boolean {
+  const active = document.activeElement;
+  if (!active) return false;
+  const tag = active.tagName.toLowerCase();
+  return (
+    tag === 'input' ||
+    tag === 'textarea' ||
+    tag === 'select' ||
+    (active as HTMLElement).isContentEditable
+  );
+}
+
+export function Canvas() {
+  const nodes = useCanvasStore((s) => s.nodes);
+  const edges = useCanvasStore((s) => s.edges);
+  const onNodesChange = useCanvasStore((s) => s.onNodesChange);
+  const onEdgesChange = useCanvasStore((s) => s.onEdgesChange);
+  const onConnect = useCanvasStore((s) => s.onConnect);
+  const deleteSelected = useCanvasStore((s) => s.deleteSelected);
+  const undo = useCanvasStore((s) => s.undo);
+  const redo = useCanvasStore((s) => s.redo);
+
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && !isInputFocused()) {
+        e.preventDefault();
+        deleteSelected();
+      }
+
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      }
+
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && e.shiftKey) {
+        e.preventDefault();
+        redo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [deleteSelected, undo, redo]);
+
+  const minimapNodeColor = useCallback((node: { type?: string }) => {
+    const colors: Record<string, string> = {
+      idea: '#A78BFA',
+      feature: '#60A5FA',
+      screen: '#34D399',
+      techStack: '#FBBF24',
+      prompt: '#F472B6',
+      note: '#94A3B8',
+    };
+    return colors[node.type || ''] || '#94A3B8';
+  }, []);
+
+  return (
+    <div className="h-screen w-screen" style={{ backgroundColor: CANVAS_BG_COLOR }}>
+      <Toolbar
+        isDashboardOpen={isDashboardOpen}
+        onToggleDashboard={() => setIsDashboardOpen((prev) => !prev)}
+        onOpenWizard={() => setIsWizardOpen(true)}
+      />
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        nodeTypes={nodeTypes}
+        defaultEdgeOptions={defaultEdgeOptions}
+        snapToGrid
+        snapGrid={GRID_SNAP}
+        fitView
+        selectionOnDrag
+        multiSelectionKeyCode="Shift"
+        deleteKeyCode={null}
+        colorMode="dark"
+        proOptions={{ hideAttribution: true }}
+        minZoom={0.1}
+        maxZoom={2}
+      >
+        <Background
+          variant={BackgroundVariant.Dots}
+          gap={20}
+          size={1}
+          color={CANVAS_DOT_COLOR}
+        />
+        <MiniMap
+          position="bottom-right"
+          style={{
+            backgroundColor: '#0F172A',
+            border: '1px solid rgba(255,255,255,0.1)',
+          }}
+          maskColor="rgba(15, 23, 42, 0.7)"
+          nodeColor={minimapNodeColor}
+        />
+        <Controls
+          position="bottom-left"
+          style={{
+            backgroundColor: '#1E293B',
+            border: '1px solid rgba(255,255,255,0.1)',
+          }}
+        />
+      </ReactFlow>
+      <ProgressDashboard
+        isOpen={isDashboardOpen}
+        onClose={() => setIsDashboardOpen(false)}
+      />
+      <ProjectWizard
+        isOpen={isWizardOpen}
+        onClose={() => setIsWizardOpen(false)}
+      />
+    </div>
+  );
+}
