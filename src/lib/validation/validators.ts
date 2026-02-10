@@ -43,6 +43,7 @@ const ALLOWED_NAME_PATTERN = /^[a-zA-Z0-9\s\-_.,!?'()]+$/;
  * HTML escapes a string to prevent XSS attacks
  */
 function escapeHtml(str: string): string {
+  const cleaned = neutralizeDangerousPatterns(str);
   const htmlEscapes: Record<string, string> = {
     '&': '&amp;',
     '<': '&lt;',
@@ -52,7 +53,30 @@ function escapeHtml(str: string): string {
     '/': '&#x2F;',
   };
 
-  return str.replace(/[&<>"'/]/g, (char) => htmlEscapes[char] || char);
+  return cleaned.replace(/[&<>"'/]/g, (char) => htmlEscapes[char] || char);
+}
+
+/**
+ * Removes high-risk XSS substrings even if the content is later HTML-escaped.
+ * This is defense-in-depth for text that may be rendered in different contexts.
+ */
+function neutralizeDangerousPatterns(value: string): string {
+  let sanitized = value;
+  const patterns = [
+    /javascript\s*:/gi,
+    /data\s*:\s*text\/html/gi,
+    /vbscript\s*:/gi,
+    /on[a-z]+\s*=/gi,
+    /alert\s*\(/gi,
+    /string\.fromcharcode/gi,
+    /expression\s*\(/gi,
+  ];
+
+  for (const pattern of patterns) {
+    sanitized = sanitized.replace(pattern, '');
+  }
+
+  return sanitized;
 }
 
 /**

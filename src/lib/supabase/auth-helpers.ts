@@ -1,6 +1,4 @@
 import { createClient } from './client'
-import { authRateLimiter, checkRateLimit } from '@/lib/rate-limit/limiter'
-import { RateLimitError } from '@/lib/errors'
 
 export async function signUp(email: string, password: string) {
   const supabase = createClient()
@@ -18,15 +16,6 @@ export async function signUp(email: string, password: string) {
 }
 
 export async function signIn(email: string, password: string) {
-  // Rate limit login attempts by email to prevent brute force
-  const rateLimitResult = await checkRateLimit(authRateLimiter, email)
-
-  if (!rateLimitResult.success) {
-    throw new RateLimitError(
-      'Too many login attempts. Please try again in 15 minutes.'
-    )
-  }
-
   const supabase = createClient()
   const { data, error } = await supabase.auth.signInWithPassword({
     email,

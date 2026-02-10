@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { signUp } from '@/lib/supabase/auth-helpers'
+import { signUpAction } from '@/app/actions/auth'
 import { PasswordStrength, validatePassword } from './PasswordStrength'
 
 export function SignUpForm() {
@@ -33,7 +33,7 @@ export function SignUpForm() {
     }
 
     try {
-      await signUp(email, password)
+      await signUpAction(email, password)
       setSuccess(true)
       // Optionally redirect to dashboard or show a confirmation message
       // router.push('/dashboard')

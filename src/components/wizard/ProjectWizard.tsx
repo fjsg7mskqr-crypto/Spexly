@@ -5,6 +5,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import { useCanvasStore } from '@/store/canvasStore';
 import { generateCanvas } from '@/lib/generateCanvas';
+import { DEFAULT_TEMPLATE_ID, TEMPLATE_OPTIONS, getTemplateById, type TemplateId } from '@/lib/templates';
 import { StepIndicator } from './StepIndicator';
 import { WizardStep } from './WizardStep';
 import type { TargetTool } from '@/types/nodes';
@@ -16,6 +17,7 @@ interface ProjectWizardProps {
 }
 
 interface WizardAnswers {
+  templateId: TemplateId;
   description: string;
   targetUser: string;
   coreProblem: string;
@@ -25,6 +27,7 @@ interface WizardAnswers {
 }
 
 const QUESTIONS = [
+  { key: 'templateId' as const, question: 'Choose a starting template', placeholder: '', type: 'template' as const },
   { key: 'description' as const, question: 'What does your app do?', placeholder: 'Brief description of your app...', type: 'textarea' as const },
   { key: 'targetUser' as const, question: 'Who is it for?', placeholder: 'e.g., Freelance designers, college students...', type: 'input' as const },
   { key: 'coreProblem' as const, question: 'What problem does it solve?', placeholder: 'The core problem your app addresses...', type: 'textarea' as const },
@@ -38,6 +41,7 @@ const TOTAL_STEPS = QUESTIONS.length;
 export function ProjectWizard({ isOpen, onClose, onComplete }: ProjectWizardProps) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<WizardAnswers>({
+    templateId: DEFAULT_TEMPLATE_ID,
     description: '',
     targetUser: '',
     coreProblem: '',
@@ -54,6 +58,17 @@ export function ProjectWizard({ isOpen, onClose, onComplete }: ProjectWizardProp
   const isLastStep = step === TOTAL_STEPS - 1;
 
   function updateAnswer(value: string) {
+    if (currentQuestion.key === 'templateId') {
+      const template = getTemplateById(value as TemplateId);
+      setAnswers((prev) => ({
+        ...prev,
+        templateId: value as TemplateId,
+        features: template ? template.features.join(', ') : '',
+        screens: template ? template.screens.join(', ') : '',
+      }));
+      return;
+    }
+
     setAnswers((prev) => ({ ...prev, [currentQuestion.key]: value }));
   }
 
@@ -78,9 +93,14 @@ export function ProjectWizard({ isOpen, onClose, onComplete }: ProjectWizardProp
   }
 
   function handleGenerate() {
+    const template = getTemplateById(answers.templateId);
+
     if (onComplete) {
       // Dashboard flow: pass answers back to parent
-      onComplete(answers as unknown as Record<string, string>);
+      onComplete({
+        ...(answers as unknown as Record<string, string>),
+        templateId: answers.templateId,
+      });
       handleClose();
       return;
     }
@@ -93,6 +113,8 @@ export function ProjectWizard({ isOpen, onClose, onComplete }: ProjectWizardProp
       features: answers.features.split(',').map((s) => s.trim()),
       screens: answers.screens.split(',').map((s) => s.trim()),
       tool: answers.tool,
+      techStack: template?.techStack ?? [],
+      prompts: template?.promptPack ?? [],
     };
 
     const { nodes: newNodes, edges: newEdges } = generateCanvas(input);
@@ -103,6 +125,7 @@ export function ProjectWizard({ isOpen, onClose, onComplete }: ProjectWizardProp
   function handleClose() {
     setStep(0);
     setAnswers({
+      templateId: DEFAULT_TEMPLATE_ID,
       description: '',
       targetUser: '',
       coreProblem: '',
@@ -164,6 +187,7 @@ export function ProjectWizard({ isOpen, onClose, onComplete }: ProjectWizardProp
                   type={currentQuestion.type}
                   value={answers[currentQuestion.key]}
                   onChange={updateAnswer}
+                  templateOptions={currentQuestion.key === 'templateId' ? TEMPLATE_OPTIONS : undefined}
                 />
               </div>
 

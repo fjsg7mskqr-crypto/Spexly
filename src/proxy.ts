@@ -50,11 +50,16 @@ export async function proxy(request: NextRequest) {
 
   // Content Security Policy (CSP)
   // Restricts sources for scripts, styles, images, etc.
+  const isProduction = process.env.NODE_ENV === 'production'
+  const scriptSrc = isProduction
+    ? "script-src 'self' 'unsafe-inline'"
+    : "script-src 'self' 'unsafe-eval' 'unsafe-inline'"
+
   headers.set(
     'Content-Security-Policy',
     [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // Next.js requires unsafe-eval and unsafe-inline
+      scriptSrc,
       "style-src 'self' 'unsafe-inline'", // Tailwind requires unsafe-inline
       "img-src 'self' data: https:", // Allow images from https sources and data URIs
       "font-src 'self' data:",

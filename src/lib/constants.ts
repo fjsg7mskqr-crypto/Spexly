@@ -16,6 +16,7 @@ import type {
   PromptNodeData,
   NoteNodeData,
   FeatureStatus,
+  NoteColorTag,
 } from '@/types/nodes';
 
 export interface NodeTypeConfig {
@@ -108,11 +109,20 @@ export const NODE_TYPE_CONFIGS: Record<SpexlyNodeType, NodeTypeConfig> = {
     defaultData: {
       title: '',
       body: '',
+      colorTag: 'Slate' as const,
       expanded: true,
       completed: false,
     },
   },
 };
+
+export const NOTE_COLOR_OPTIONS: { value: NoteColorTag; label: string; swatch: string }[] = [
+  { value: 'Slate', label: 'Slate', swatch: '#94A3B8' },
+  { value: 'Amber', label: 'Amber', swatch: '#FBBF24' },
+  { value: 'Emerald', label: 'Emerald', swatch: '#34D399' },
+  { value: 'Sky', label: 'Sky', swatch: '#38BDF8' },
+  { value: 'Rose', label: 'Rose', swatch: '#FB7185' },
+];
 
 // Feature status badge configuration
 export const FEATURE_STATUS_CONFIG: Record<

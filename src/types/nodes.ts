@@ -8,6 +8,7 @@ export type FeaturePriority = 'Must' | 'Should' | 'Nice';
 export type FeatureStatus = 'Planned' | 'In Progress' | 'Built' | 'Broken' | 'Blocked';
 export type TechCategory = 'Frontend' | 'Backend' | 'Database' | 'Auth' | 'Hosting' | 'Other';
 export type TargetTool = 'Claude' | 'Bolt' | 'Cursor' | 'Lovable' | 'Replit' | 'Other';
+export type NoteColorTag = 'Slate' | 'Amber' | 'Emerald' | 'Sky' | 'Rose';
 
 // Per-node data payloads (index signature required by React Flow's Record<string, unknown>)
 export interface IdeaNodeData {
@@ -61,6 +62,7 @@ export interface NoteNodeData {
   [key: string]: unknown;
   title: string;
   body: string;
+  colorTag: NoteColorTag;
   expanded: boolean;
   completed: boolean;
 }

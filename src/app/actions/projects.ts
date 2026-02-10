@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { headers } from 'next/headers';
 import type { Project, CanvasData } from '@/types/project';
 import type { SpexlyNode, SpexlyEdge } from '@/types/nodes';
 import {
@@ -21,6 +22,57 @@ import {
   canvasSaveRateLimiter,
   checkRateLimit,
 } from '@/lib/rate-limit/limiter';
+
+/**
+ * Validates the origin and referer headers to prevent CSRF attacks
+ * This provides an additional layer of security beyond Next.js Server Actions' built-in protections
+ * @throws {ValidationError} if origin validation fails
+ */
+async function validateOrigin(): Promise<void> {
+  const headersList = await headers();
+  const origin = headersList.get('origin');
+  const referer = headersList.get('referer');
+
+  // Define allowed origins for different environments
+  const allowedOrigins = [
+    'http://localhost:3000', // Development
+    'http://localhost:3001', // Development alternative
+    'https://spexly.com', // Production
+    'https://www.spexly.com', // Production with www
+    'https://spexly.vercel.app', // Vercel preview
+  ];
+
+  // For development, also allow any localhost origin
+  if (process.env.NODE_ENV === 'development') {
+    if (origin?.startsWith('http://localhost:') || origin?.startsWith('http://127.0.0.1:')) {
+      return; // Allow in development
+    }
+  }
+
+  // Check origin header (present on POST requests)
+  if (origin && !allowedOrigins.includes(origin)) {
+    logError(new Error('Invalid origin'), { origin, referer });
+    throw new ValidationError('Request origin not allowed');
+  }
+
+  // Check referer header as fallback
+  if (!origin && referer) {
+    const refererUrl = new URL(referer);
+    const refererOrigin = `${refererUrl.protocol}//${refererUrl.host}`;
+
+    if (!allowedOrigins.includes(refererOrigin)) {
+      logError(new Error('Invalid referer'), { referer });
+      throw new ValidationError('Request referer not allowed');
+    }
+  }
+
+  // If neither origin nor referer is present, this might be suspicious
+  // but we'll allow it as some legitimate requests may not have these headers
+  if (!origin && !referer && process.env.NODE_ENV === 'production') {
+    logError(new Error('Missing origin and referer headers'), { headers: headersList });
+    // Log but don't block to avoid breaking legitimate use cases
+  }
+}
 
 async function getAuthUserId(): Promise<string> {
   const supabase = await createClient();
@@ -112,6 +164,9 @@ export async function getProject(id: string): Promise<Project | null> {
 
 export async function createProject(name?: string): Promise<Project> {
   try {
+    // Validate origin to prevent CSRF attacks
+    await validateOrigin();
+
     const userId = await getAuthUserId();
 
     // Rate limit project creation
@@ -181,6 +236,9 @@ export async function createProjectFromWizard(
   edges: SpexlyEdge[],
 ): Promise<Project> {
   try {
+    // Validate origin to prevent CSRF attacks
+    await validateOrigin();
+
     const userId = await getAuthUserId();
 
     // Rate limit project creation
@@ -268,6 +326,9 @@ export async function updateCanvasData(
   edges: SpexlyEdge[],
 ): Promise<void> {
   try {
+    // Validate origin to prevent CSRF attacks
+    await validateOrigin();
+
     const userId = await getAuthUserId();
 
     // Rate limit canvas saves to prevent spam
@@ -323,6 +384,9 @@ export async function updateCanvasData(
 
 export async function renameProject(id: string, name: string): Promise<void> {
   try {
+    // Validate origin to prevent CSRF attacks
+    await validateOrigin();
+
     const userId = await getAuthUserId();
 
     // Rate limit project operations
@@ -365,6 +429,9 @@ export async function renameProject(id: string, name: string): Promise<void> {
 
 export async function deleteProject(id: string): Promise<void> {
   try {
+    // Validate origin to prevent CSRF attacks
+    await validateOrigin();
+
     const userId = await getAuthUserId();
 
     // Rate limit project operations

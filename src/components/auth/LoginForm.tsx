@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn, signInWithOAuth } from '@/lib/supabase/auth-helpers'
+import { signInWithOAuth } from '@/lib/supabase/auth-helpers'
+import { signInAction } from '@/app/actions/auth'
 import { useRouter } from 'next/navigation'
 
 export function LoginForm() {
@@ -17,7 +18,7 @@ export function LoginForm() {
     setError(null)
 
     try {
-      await signIn(email, password)
+      await signInAction(email, password)
       router.push('/dashboard') // Redirect to dashboard after login
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')

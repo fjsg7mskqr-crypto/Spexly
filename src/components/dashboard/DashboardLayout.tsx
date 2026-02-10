@@ -7,6 +7,7 @@ import { Plus, Sparkles, LogOut } from 'lucide-react';
 import { signOut } from '@/lib/supabase/auth-helpers';
 import { createProject, createProjectFromWizard, renameProject, deleteProject } from '@/app/actions/projects';
 import { generateCanvas } from '@/lib/generateCanvas';
+import { getTemplateById, type TemplateId } from '@/lib/templates';
 import { ProjectCard } from './ProjectCard';
 import { ProjectWizard } from '@/components/wizard/ProjectWizard';
 import type { Project } from '@/types/project';
@@ -41,6 +42,8 @@ export function DashboardLayout({ projects: initialProjects, userEmail }: Dashbo
         .map((s) => s.trim())
         .filter(Boolean) ?? [];
 
+      const template = getTemplateById((answers.templateId ?? 'blank') as TemplateId);
+
       const { nodes, edges } = generateCanvas({
         description: answers.description ?? '',
         targetUser: answers.targetUser ?? '',
@@ -48,6 +51,8 @@ export function DashboardLayout({ projects: initialProjects, userEmail }: Dashbo
         features,
         screens,
         tool: (answers.tool ?? 'Claude') as TargetTool,
+        techStack: template?.techStack ?? [],
+        prompts: template?.promptPack ?? [],
       });
 
       const name = answers.description?.slice(0, 50) || 'New Project';

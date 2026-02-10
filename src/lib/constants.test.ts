@@ -57,6 +57,11 @@ describe('constants', () => {
       const data = NODE_TYPE_CONFIGS.prompt.defaultData
       expect(data).toHaveProperty('targetTool', 'Claude')
     })
+
+    it('note config has default color tag', () => {
+      const data = NODE_TYPE_CONFIGS.note.defaultData
+      expect(data).toHaveProperty('colorTag', 'Slate')
+    })
   })
 
   describe('FEATURE_STATUS_CONFIG', () => {

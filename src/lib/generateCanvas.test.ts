@@ -161,4 +161,32 @@ describe('generateCanvas', () => {
       expect(f.data.status).toBe('Planned');
     }
   });
+
+  it('adds tech stack nodes when provided', () => {
+    const result = generateCanvas(makeInput({
+      techStack: [
+        { category: 'Frontend', toolName: 'Next.js', notes: 'App Router' },
+        { category: 'Database', toolName: 'Supabase', notes: '' },
+      ],
+    }));
+    const techNodes = result.nodes.filter((n) => n.type === 'techStack');
+    expect(techNodes).toHaveLength(2);
+    const idea = result.nodes.find((n) => n.type === 'idea')!;
+    const ideaToTechEdges = result.edges.filter((e) => e.source === idea.id && e.target.startsWith('techStack-'));
+    expect(ideaToTechEdges).toHaveLength(2);
+  });
+
+  it('creates multiple prompt nodes from prompt pack', () => {
+    const result = generateCanvas(makeInput({
+      prompts: [
+        { text: 'Plan data models' },
+        { text: 'Design UI flows' },
+        { text: 'Implement auth screens' },
+      ],
+    }));
+    const prompts = result.nodes.filter((n) => n.type === 'prompt');
+    expect(prompts).toHaveLength(3);
+    const promptEdges = result.edges.filter((e) => e.source.startsWith('prompt-') && e.target.startsWith('prompt-'));
+    expect(promptEdges).toHaveLength(2);
+  });
 });

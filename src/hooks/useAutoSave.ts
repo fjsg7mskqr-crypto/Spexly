@@ -26,7 +26,10 @@ export function useAutoSave() {
         try {
           await updateCanvasData(projectId, nodes, edges);
         } catch (err) {
-          console.error('Auto-save failed:', err);
+          // Only log errors in development to prevent information leakage
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Auto-save failed:', err);
+          }
         } finally {
           useCanvasStore.getState().setSaveStatus(false);
         }

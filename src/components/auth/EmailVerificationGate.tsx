@@ -31,7 +31,10 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
       const verified = await checkEmailVerification();
       setIsVerified(verified);
     } catch (error) {
-      console.error('Error checking email verification:', error);
+      // Only log errors in development to prevent information leakage
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error checking email verification:', error);
+      }
       setIsVerified(null);
     } finally {
       setIsLoading(false);
@@ -58,7 +61,10 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
       await signOut();
       window.location.href = '/login';
     } catch (error) {
-      console.error('Error signing out:', error);
+      // Only log errors in development to prevent information leakage
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error signing out:', error);
+      }
     }
   }
 
