@@ -13,6 +13,7 @@ import {
 
 import { useCanvasStore } from '@/store/canvasStore';
 import { Toolbar } from './Toolbar';
+import { DocumentImportModal } from './DocumentImportModal';
 import { ProgressDashboard } from '@/components/dashboard/ProgressDashboard';
 import { GRID_SNAP, CANVAS_BG_COLOR, CANVAS_DOT_COLOR, EDGE_COLOR } from '@/lib/constants';
 
@@ -62,6 +63,7 @@ export function Canvas() {
   const redo = useCanvasStore((s) => s.redo);
 
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -102,6 +104,7 @@ export function Canvas() {
       <Toolbar
         isDashboardOpen={isDashboardOpen}
         onToggleDashboard={() => setIsDashboardOpen((prev) => !prev)}
+        onOpenImport={() => setIsImportOpen(true)}
       />
       <ReactFlow
         nodes={nodes}
@@ -149,6 +152,7 @@ export function Canvas() {
         isOpen={isDashboardOpen}
         onClose={() => setIsDashboardOpen(false)}
       />
+      <DocumentImportModal isOpen={isImportOpen} onClose={() => setIsImportOpen(false)} />
     </div>
   );
 }

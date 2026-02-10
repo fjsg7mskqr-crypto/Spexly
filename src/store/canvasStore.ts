@@ -55,6 +55,7 @@ interface CanvasState {
 
   getFeatureStatusCounts: () => Record<FeatureStatus, number>;
   setNodesAndEdges: (nodes: SpexlyNode[], edges: SpexlyEdge[]) => void;
+  appendNodesAndEdges: (nodes: SpexlyNode[], edges: SpexlyEdge[]) => void;
 
   // Project lifecycle
   loadProject: (id: string, name: string, nodes: SpexlyNode[], edges: SpexlyEdge[]) => void;
@@ -241,6 +242,36 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   setNodesAndEdges: (nodes, edges) => {
     get().pushHistory();
     set({ nodes, edges });
+  },
+
+  appendNodesAndEdges: (nodes, edges) => {
+    get().pushHistory();
+    const existingNodes = get().nodes;
+
+    let offsetX = 0;
+    let offsetY = 0;
+
+    if (existingNodes.length > 0) {
+      const xs = existingNodes.map((n) => n.position.x);
+      const ys = existingNodes.map((n) => n.position.y);
+      const maxX = Math.max(...xs);
+      const minY = Math.min(...ys);
+      offsetX = maxX + 300;
+      offsetY = minY;
+    }
+
+    const adjustedNodes = nodes.map((node) => ({
+      ...node,
+      position: {
+        x: node.position.x + offsetX,
+        y: node.position.y + offsetY,
+      },
+    })) as SpexlyNode[];
+
+    set({
+      nodes: [...existingNodes, ...adjustedNodes],
+      edges: [...get().edges, ...edges],
+    });
   },
 
   loadProject: (id, name, nodes, edges) => {

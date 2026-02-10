@@ -1,14 +1,14 @@
 'use client';
-
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, BarChart3, Cloud, CloudOff, Loader2 } from 'lucide-react';
+import { ArrowLeft, BarChart3, Cloud, CloudOff, FileText, Loader2 } from 'lucide-react';
 import { useCanvasStore } from '@/store/canvasStore';
 import { AddNodeMenu } from './AddNodeMenu';
 
 interface ToolbarProps {
   isDashboardOpen: boolean;
   onToggleDashboard: () => void;
+  onOpenImport: () => void;
 }
 
 function SaveStatus() {
@@ -44,7 +44,7 @@ function SaveStatus() {
   );
 }
 
-export function Toolbar({ isDashboardOpen, onToggleDashboard }: ToolbarProps) {
+export function Toolbar({ isDashboardOpen, onToggleDashboard, onOpenImport }: ToolbarProps) {
   const projectName = useCanvasStore((s) => s.projectName);
 
   return (
@@ -66,6 +66,13 @@ export function Toolbar({ isDashboardOpen, onToggleDashboard }: ToolbarProps) {
         <SaveStatus />
       </div>
       <div className="flex items-center gap-2">
+        <button
+          onClick={onOpenImport}
+          className="flex items-center gap-2 rounded-lg border border-white/10 bg-slate-800 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-slate-700"
+        >
+          <FileText size={16} />
+          Import
+        </button>
         <button
           onClick={onToggleDashboard}
           className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
