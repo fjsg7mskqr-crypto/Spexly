@@ -15,7 +15,6 @@ import '@xyflow/react/dist/style.css';
 import { useCanvasStore } from '@/store/canvasStore';
 import { Toolbar } from './Toolbar';
 import { ProgressDashboard } from '@/components/dashboard/ProgressDashboard';
-import { ProjectWizard } from '@/components/wizard/ProjectWizard';
 import { GRID_SNAP, CANVAS_BG_COLOR, CANVAS_DOT_COLOR, EDGE_COLOR } from '@/lib/constants';
 
 import IdeaNode from '@/components/nodes/IdeaNode';
@@ -64,7 +63,6 @@ export function Canvas() {
   const redo = useCanvasStore((s) => s.redo);
 
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
-  const [isWizardOpen, setIsWizardOpen] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -105,7 +103,6 @@ export function Canvas() {
       <Toolbar
         isDashboardOpen={isDashboardOpen}
         onToggleDashboard={() => setIsDashboardOpen((prev) => !prev)}
-        onOpenWizard={() => setIsWizardOpen(true)}
       />
       <ReactFlow
         nodes={nodes}
@@ -152,10 +149,6 @@ export function Canvas() {
       <ProgressDashboard
         isOpen={isDashboardOpen}
         onClose={() => setIsDashboardOpen(false)}
-      />
-      <ProjectWizard
-        isOpen={isWizardOpen}
-        onClose={() => setIsWizardOpen(false)}
       />
     </div>
   );

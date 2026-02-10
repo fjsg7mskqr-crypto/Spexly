@@ -26,6 +26,12 @@ interface CanvasState {
   past: HistoryEntry[];
   future: HistoryEntry[];
 
+  // Project metadata
+  projectId: string | null;
+  projectName: string;
+  isSaving: boolean;
+  lastSavedAt: Date | null;
+
   onNodesChange: (changes: NodeChange<SpexlyNode>[]) => void;
   onEdgesChange: (changes: EdgeChange<SpexlyEdge>[]) => void;
   onConnect: (connection: Connection) => void;
@@ -48,6 +54,12 @@ interface CanvasState {
 
   getFeatureStatusCounts: () => Record<FeatureStatus, number>;
   setNodesAndEdges: (nodes: SpexlyNode[], edges: SpexlyEdge[]) => void;
+
+  // Project lifecycle
+  loadProject: (id: string, name: string, nodes: SpexlyNode[], edges: SpexlyEdge[]) => void;
+  clearCanvas: () => void;
+  setProjectMeta: (id: string, name: string) => void;
+  setSaveStatus: (saving: boolean) => void;
 }
 
 export const useCanvasStore = create<CanvasState>((set, get) => ({
@@ -55,6 +67,11 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   edges: [],
   past: [],
   future: [],
+
+  projectId: null,
+  projectName: '',
+  isSaving: false,
+  lastSavedAt: null,
 
   onNodesChange: (changes) => {
     const significantChange = changes.some(
@@ -212,5 +229,42 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   setNodesAndEdges: (nodes, edges) => {
     get().pushHistory();
     set({ nodes, edges });
+  },
+
+  loadProject: (id, name, nodes, edges) => {
+    set({
+      projectId: id,
+      projectName: name,
+      nodes,
+      edges,
+      past: [],
+      future: [],
+      isSaving: false,
+      lastSavedAt: null,
+    });
+  },
+
+  clearCanvas: () => {
+    set({
+      projectId: null,
+      projectName: '',
+      nodes: [],
+      edges: [],
+      past: [],
+      future: [],
+      isSaving: false,
+      lastSavedAt: null,
+    });
+  },
+
+  setProjectMeta: (id, name) => {
+    set({ projectId: id, projectName: name });
+  },
+
+  setSaveStatus: (saving) => {
+    set({
+      isSaving: saving,
+      ...(saving ? {} : { lastSavedAt: new Date() }),
+    });
   },
 }));

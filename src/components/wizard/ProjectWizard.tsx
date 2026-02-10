@@ -12,6 +12,7 @@ import type { TargetTool } from '@/types/nodes';
 interface ProjectWizardProps {
   isOpen: boolean;
   onClose: () => void;
+  onComplete?: (answers: Record<string, string>) => void;
 }
 
 interface WizardAnswers {
@@ -34,7 +35,7 @@ const QUESTIONS = [
 
 const TOTAL_STEPS = QUESTIONS.length;
 
-export function ProjectWizard({ isOpen, onClose }: ProjectWizardProps) {
+export function ProjectWizard({ isOpen, onClose, onComplete }: ProjectWizardProps) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<WizardAnswers>({
     description: '',
@@ -77,6 +78,14 @@ export function ProjectWizard({ isOpen, onClose }: ProjectWizardProps) {
   }
 
   function handleGenerate() {
+    if (onComplete) {
+      // Dashboard flow: pass answers back to parent
+      onComplete(answers as unknown as Record<string, string>);
+      handleClose();
+      return;
+    }
+
+    // Canvas flow: generate directly into store
     const input = {
       description: answers.description,
       targetUser: answers.targetUser,

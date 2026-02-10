@@ -1,12 +1,13 @@
-'use client';
+import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 
-import { ReactFlowProvider } from '@xyflow/react';
-import { Canvas } from '@/components/canvas/Canvas';
+export default async function Home() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-export default function Home() {
-  return (
-    <ReactFlowProvider>
-      <Canvas />
-    </ReactFlowProvider>
-  );
+  if (user) {
+    redirect('/dashboard');
+  } else {
+    redirect('/login');
+  }
 }
