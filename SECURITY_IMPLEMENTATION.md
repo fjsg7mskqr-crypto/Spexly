@@ -11,7 +11,7 @@ This document summarizes the comprehensive security implementation for Spexly fo
 ### Phase 1: Critical Security (✅ COMPLETED)
 
 #### 1.1 Row Level Security (RLS) Policies
-**File:** `/supabase/migrations/20260210_enable_rls_projects.sql`
+**File:** `/Spexly/supabase/migrations/20260210_enable_rls_projects.sql`
 
 - ✅ Created RLS migration SQL file with policies for the `projects` table
 - ✅ Policies implemented:
@@ -133,7 +133,7 @@ All CRUD operations updated with:
 
 **Option A: Via Supabase Dashboard**
 1. Go to https://supabase.com/dashboard/project/YOUR_PROJECT/sql
-2. Open `/supabase/migrations/20260210_enable_rls_projects.sql`
+2. Open `/Spexly/supabase/migrations/20260210_enable_rls_projects.sql`
 3. Copy and paste the SQL content
 4. Click "Run" to execute
 5. Verify in Authentication > Policies that policies are listed
@@ -243,7 +243,7 @@ vercel --prod
 ## 📁 Files Created/Modified
 
 ### New Files Created:
-1. `/supabase/migrations/20260210_enable_rls_projects.sql`
+1. `/Spexly/supabase/migrations/20260210_enable_rls_projects.sql`
 2. `/src/lib/validation/validators.ts`
 3. `/src/lib/errors/index.ts`
 4. `/src/lib/rate-limit/limiter.ts`

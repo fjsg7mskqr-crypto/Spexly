@@ -21,25 +21,39 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
   const [resendSuccess, setResendSuccess] = useState(false);
   const [resendError, setResendError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const verificationTimeoutMs = 5000;
 
   useEffect(() => {
-    checkVerificationStatus();
-  }, []);
-
-  async function checkVerificationStatus() {
-    try {
-      const verified = await checkEmailVerification();
-      setIsVerified(verified);
-    } catch (error) {
-      // Only log errors in development to prevent information leakage
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error checking email verification:', error);
-      }
+    let isActive = true;
+    const timeoutId = window.setTimeout(() => {
+      if (!isActive) return;
       setIsVerified(null);
-    } finally {
       setIsLoading(false);
-    }
-  }
+    }, verificationTimeoutMs);
+
+    (async () => {
+      try {
+        const verified = await checkEmailVerification();
+        if (!isActive) return;
+        setIsVerified(verified);
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error checking email verification:', error);
+        }
+        if (!isActive) return;
+        setIsVerified(null);
+      } finally {
+        if (!isActive) return;
+        window.clearTimeout(timeoutId);
+        setIsLoading(false);
+      }
+    })();
+
+    return () => {
+      isActive = false;
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
 
   async function handleResendEmail() {
     setIsResending(true);
@@ -111,7 +125,7 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
             Verify your email
           </h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            We've sent a verification link to your email address. Please check your inbox and click the link to continue.
+            We&apos;ve sent a verification link to your email address. Please check your inbox and click the link to continue.
           </p>
         </div>
 
@@ -143,7 +157,7 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
             onClick={() => window.location.reload()}
             className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           >
-            I've verified, refresh page
+            I&apos;ve verified, refresh page
           </button>
 
           <button
@@ -156,7 +170,7 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
 
         {/* Help text */}
         <div className="text-center text-xs text-gray-500 dark:text-gray-400">
-          <p>Didn't receive the email? Check your spam folder or try resending.</p>
+          <p>Didn&apos;t receive the email? Check your spam folder or try resending.</p>
         </div>
       </div>
     </div>

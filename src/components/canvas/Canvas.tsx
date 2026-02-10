@@ -10,7 +10,6 @@ import {
   type NodeTypes,
   type DefaultEdgeOptions,
 } from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
 
 import { useCanvasStore } from '@/store/canvasStore';
 import { Toolbar } from './Toolbar';

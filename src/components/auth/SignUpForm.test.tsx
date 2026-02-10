@@ -2,10 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, userEvent, waitFor } from '@/__tests__/utils/test-utils'
 import { SignUpForm } from './SignUpForm'
 
-const mockSignUp = vi.fn()
+const mockSignUpAction = vi.fn()
 
-vi.mock('@/lib/supabase/auth-helpers', () => ({
-  signUp: (...args: unknown[]) => mockSignUp(...args),
+vi.mock('@/app/actions/auth', () => ({
+  signUpAction: (...args: unknown[]) => mockSignUpAction(...args),
 }))
 
 describe('SignUpForm', () => {
@@ -33,15 +33,15 @@ describe('SignUpForm', () => {
     render(<SignUpForm />)
 
     await user.type(screen.getByLabelText('Email'), 'test@example.com')
-    await user.type(screen.getByLabelText('Password'), 'password123')
-    await user.type(screen.getByLabelText('Confirm Password'), 'different')
+    await user.type(screen.getByLabelText('Password'), 'Password123!')
+    await user.type(screen.getByLabelText('Confirm Password'), 'Different123!')
     await user.click(screen.getByRole('button', { name: 'Sign Up' }))
 
     await waitFor(() => {
       expect(screen.getByText('Passwords do not match')).toBeInTheDocument()
     })
 
-    expect(mockSignUp).not.toHaveBeenCalled()
+    expect(mockSignUpAction).not.toHaveBeenCalled()
   })
 
   it('shows error when password is too short', async () => {
@@ -56,8 +56,8 @@ describe('SignUpForm', () => {
     await user.type(emailInput, 'test@example.com')
 
     // Fill password fields by setting value directly to bypass browser minLength validation
-    await user.type(passwordInput, '12345')
-    await user.type(confirmInput, '12345')
+    await user.type(passwordInput, 'short')
+    await user.type(confirmInput, 'short')
 
     // Submit via form submit event to bypass HTML validation
     const { act } = await import('@testing-library/react')
@@ -67,37 +67,41 @@ describe('SignUpForm', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByText('Password must be at least 6 characters')).toBeInTheDocument()
+      expect(
+        screen.getByText(
+          'Password must be at least 12 characters and include uppercase, lowercase, number, and special character'
+        )
+      ).toBeInTheDocument()
     })
 
-    expect(mockSignUp).not.toHaveBeenCalled()
+    expect(mockSignUpAction).not.toHaveBeenCalled()
   })
 
   it('calls signUp with email and password on valid submission', async () => {
     const user = userEvent.setup()
-    mockSignUp.mockResolvedValue({ user: { id: '1' } })
+    mockSignUpAction.mockResolvedValue({ user: { id: '1' } })
 
     render(<SignUpForm />)
 
     await user.type(screen.getByLabelText('Email'), 'test@example.com')
-    await user.type(screen.getByLabelText('Password'), 'password123')
-    await user.type(screen.getByLabelText('Confirm Password'), 'password123')
+    await user.type(screen.getByLabelText('Password'), 'Password123!')
+    await user.type(screen.getByLabelText('Confirm Password'), 'Password123!')
     await user.click(screen.getByRole('button', { name: 'Sign Up' }))
 
     await waitFor(() => {
-      expect(mockSignUp).toHaveBeenCalledWith('test@example.com', 'password123')
+      expect(mockSignUpAction).toHaveBeenCalledWith('test@example.com', 'Password123!')
     })
   })
 
   it('shows success message after signup', async () => {
     const user = userEvent.setup()
-    mockSignUp.mockResolvedValue({ user: { id: '1' } })
+    mockSignUpAction.mockResolvedValue({ user: { id: '1' } })
 
     render(<SignUpForm />)
 
     await user.type(screen.getByLabelText('Email'), 'test@example.com')
-    await user.type(screen.getByLabelText('Password'), 'password123')
-    await user.type(screen.getByLabelText('Confirm Password'), 'password123')
+    await user.type(screen.getByLabelText('Password'), 'Password123!')
+    await user.type(screen.getByLabelText('Confirm Password'), 'Password123!')
     await user.click(screen.getByRole('button', { name: 'Sign Up' }))
 
     await waitFor(() => {
@@ -107,13 +111,13 @@ describe('SignUpForm', () => {
 
   it('displays error message on signUp failure', async () => {
     const user = userEvent.setup()
-    mockSignUp.mockRejectedValue(new Error('Email already in use'))
+    mockSignUpAction.mockRejectedValue(new Error('Email already in use'))
 
     render(<SignUpForm />)
 
     await user.type(screen.getByLabelText('Email'), 'test@example.com')
-    await user.type(screen.getByLabelText('Password'), 'password123')
-    await user.type(screen.getByLabelText('Confirm Password'), 'password123')
+    await user.type(screen.getByLabelText('Password'), 'Password123!')
+    await user.type(screen.getByLabelText('Confirm Password'), 'Password123!')
     await user.click(screen.getByRole('button', { name: 'Sign Up' }))
 
     await waitFor(() => {
@@ -123,13 +127,13 @@ describe('SignUpForm', () => {
 
   it('shows loading state during submission', async () => {
     const user = userEvent.setup()
-    mockSignUp.mockImplementation(() => new Promise(() => {}))
+    mockSignUpAction.mockImplementation(() => new Promise(() => {}))
 
     render(<SignUpForm />)
 
     await user.type(screen.getByLabelText('Email'), 'test@example.com')
-    await user.type(screen.getByLabelText('Password'), 'password123')
-    await user.type(screen.getByLabelText('Confirm Password'), 'password123')
+    await user.type(screen.getByLabelText('Password'), 'Password123!')
+    await user.type(screen.getByLabelText('Confirm Password'), 'Password123!')
     await user.click(screen.getByRole('button', { name: 'Sign Up' }))
 
     await waitFor(() => {

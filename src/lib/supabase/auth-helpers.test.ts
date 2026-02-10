@@ -24,6 +24,9 @@ describe('auth-helpers', () => {
       expect(mockClient.auth.signUp).toHaveBeenCalledWith({
         email: 'test@example.com',
         password: 'password123',
+        options: {
+          emailRedirectTo: expect.stringContaining('/auth/callback'),
+        },
       })
     })
 

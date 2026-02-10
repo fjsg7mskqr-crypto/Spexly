@@ -13,11 +13,14 @@ vi.mock('next/navigation', () => ({
   }),
 }))
 
-const mockSignIn = vi.fn()
+const mockSignInAction = vi.fn()
 const mockSignInWithOAuth = vi.fn()
 
+vi.mock('@/app/actions/auth', () => ({
+  signInAction: (...args: unknown[]) => mockSignInAction(...args),
+}))
+
 vi.mock('@/lib/supabase/auth-helpers', () => ({
-  signIn: (...args: unknown[]) => mockSignIn(...args),
   signInWithOAuth: (...args: unknown[]) => mockSignInWithOAuth(...args),
 }))
 
@@ -49,7 +52,7 @@ describe('LoginForm', () => {
 
   it('submits form with email and password', async () => {
     const user = userEvent.setup()
-    mockSignIn.mockResolvedValue({ session: {} })
+    mockSignInAction.mockResolvedValue({ session: {} })
 
     render(<LoginForm />)
 
@@ -58,13 +61,13 @@ describe('LoginForm', () => {
     await user.click(screen.getByRole('button', { name: 'Sign In' }))
 
     await waitFor(() => {
-      expect(mockSignIn).toHaveBeenCalledWith('test@example.com', 'password123')
+      expect(mockSignInAction).toHaveBeenCalledWith('test@example.com', 'password123')
     })
   })
 
   it('redirects to dashboard on successful login', async () => {
     const user = userEvent.setup()
-    mockSignIn.mockResolvedValue({ session: {} })
+    mockSignInAction.mockResolvedValue({ session: {} })
 
     render(<LoginForm />)
 
@@ -79,7 +82,7 @@ describe('LoginForm', () => {
 
   it('displays error message on auth failure', async () => {
     const user = userEvent.setup()
-    mockSignIn.mockRejectedValue(new Error('Invalid credentials'))
+    mockSignInAction.mockRejectedValue(new Error('Invalid credentials'))
 
     render(<LoginForm />)
 
@@ -95,7 +98,7 @@ describe('LoginForm', () => {
   it('shows loading state during submission', async () => {
     const user = userEvent.setup()
     // Make signIn hang so we can see loading state
-    mockSignIn.mockImplementation(() => new Promise(() => {}))
+    mockSignInAction.mockImplementation(() => new Promise(() => {}))
 
     render(<LoginForm />)
 
