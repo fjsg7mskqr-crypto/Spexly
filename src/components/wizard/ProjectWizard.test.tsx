@@ -44,7 +44,7 @@ describe('ProjectWizard', () => {
     render(<ProjectWizard isOpen={true} onClose={vi.fn()} />);
 
     await user.click(screen.getByText('Next'));
-    expect(screen.getByText('What does your app do?')).toBeInTheDocument();
+    expect(screen.getByText('What should we call the app?')).toBeInTheDocument();
   });
 
   it('goes back on Back click', async () => {
@@ -52,7 +52,7 @@ describe('ProjectWizard', () => {
     render(<ProjectWizard isOpen={true} onClose={vi.fn()} />);
 
     await user.click(screen.getByText('Next'));
-    expect(screen.getByText('What does your app do?')).toBeInTheDocument();
+    expect(screen.getByText('What should we call the app?')).toBeInTheDocument();
 
     await user.click(screen.getByText('Back'));
     expect(screen.getByText('Choose a starting template')).toBeInTheDocument();
@@ -68,8 +68,8 @@ describe('ProjectWizard', () => {
     const user = userEvent.setup();
     render(<ProjectWizard isOpen={true} onClose={vi.fn()} />);
 
-    // Navigate to the last step (step 6, 0-indexed)
-    for (let i = 0; i < 6; i++) {
+    // Navigate to the last step (step 7, 0-indexed)
+    for (let i = 0; i < 7; i++) {
       await user.click(screen.getByText('Next'));
     }
 
@@ -82,7 +82,7 @@ describe('ProjectWizard', () => {
     render(<ProjectWizard isOpen={true} onClose={onClose} />);
 
     // Fill in some answers and navigate
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 7; i++) {
       await user.click(screen.getByText('Next'));
     }
 
@@ -92,6 +92,6 @@ describe('ProjectWizard', () => {
 
   it('shows step indicator with correct number of dots', () => {
     render(<ProjectWizard isOpen={true} onClose={vi.fn()} />);
-    expect(screen.getByText('Step 1 of 7')).toBeInTheDocument();
+    expect(screen.getByText('Answer each step below. Current step: 1 of 8')).toBeInTheDocument();
   });
 });

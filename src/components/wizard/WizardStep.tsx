@@ -10,6 +10,8 @@ interface WizardStepProps {
   value: string;
   onChange: (value: string) => void;
   templateOptions?: SpexlyTemplate[];
+  isActive?: boolean;
+  onSelect?: () => void;
 }
 
 const inputClass =
@@ -24,9 +26,18 @@ export function WizardStep({
   value,
   onChange,
   templateOptions,
+  isActive = false,
+  onSelect,
 }: WizardStepProps) {
   return (
-    <div>
+    <div
+      className={`rounded-xl border px-4 py-4 transition-all ${
+        isActive
+          ? 'border-violet-400/60 bg-violet-400/5 shadow-[0_0_0_1px_rgba(139,92,246,0.2)]'
+          : 'border-slate-700/50 bg-slate-900/40 opacity-70 hover:opacity-90'
+      }`}
+      onClick={onSelect}
+    >
       <h3 className="mb-3 text-lg font-medium text-slate-100">{question}</h3>
       {type === 'input' && (
         <input
@@ -34,7 +45,7 @@ export function WizardStep({
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          autoFocus
+          autoFocus={isActive}
         />
       )}
       {type === 'textarea' && (
@@ -44,7 +55,7 @@ export function WizardStep({
           rows={4}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          autoFocus
+          autoFocus={isActive}
         />
       )}
       {type === 'select' && (

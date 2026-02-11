@@ -8,15 +8,20 @@ import type {
   PromptNodeData,
   TechCategory,
   TargetTool,
+  FeaturePriority,
+  FeatureStatus,
 } from '@/types/nodes';
 
 export interface GenerateCanvasInput {
+  appName?: string;
   description: string;
   targetUser: string;
   coreProblem: string;
   features: string[];
   screens: string[];
   tool: TargetTool;
+  featuresDetailed?: { featureName: string; description?: string; priority?: FeaturePriority; status?: FeatureStatus }[];
+  screensDetailed?: { screenName: string; description?: string; keyElements?: string }[];
   techStack?: { category: TechCategory; toolName: string; notes?: string }[];
   prompts?: { text: string; targetTool?: TargetTool }[];
 }
@@ -28,6 +33,17 @@ export interface GenerateCanvasOutput {
 
 const COLUMN_X = [0, 360, 720, 1080, 1440];
 const ROW_SPACING = 10;
+
+const FEATURE_PRIORITIES = new Set<FeaturePriority>(['Must', 'Should', 'Nice']);
+const FEATURE_STATUSES = new Set<FeatureStatus>(['Planned', 'In Progress', 'Built', 'Broken', 'Blocked']);
+
+function normalizePriority(value?: FeaturePriority): FeaturePriority {
+  return value && FEATURE_PRIORITIES.has(value) ? value : 'Must';
+}
+
+function normalizeStatus(value?: FeatureStatus): FeatureStatus {
+  return value && FEATURE_STATUSES.has(value) ? value : 'Planned';
+}
 
 function centerPositions(count: number, columnX: number, totalHeight: number): { x: number; y: number }[] {
   if (count === 0) return [];
@@ -45,16 +61,32 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
   const techStack = (input.techStack ?? []).filter((item) => item.toolName.length > 0);
   const promptPack = (input.prompts ?? []).filter((item) => item.text.length > 0);
   const promptCount = promptPack.length > 0 ? promptPack.length : 1;
+  const detailedFeatures = (input.featuresDetailed ?? []).filter((item) => item.featureName?.length > 0);
+  const detailedScreens = (input.screensDetailed ?? []).filter((item) => item.screenName?.length > 0);
 
-  const maxItems = Math.max(features.length, screens.length, techStack.length, promptCount, 1);
+  const maxItems = Math.max(
+    detailedFeatures.length || features.length,
+    detailedScreens.length || screens.length,
+    techStack.length,
+    promptCount,
+    1
+  );
   const totalHeight = (maxItems - 1) * ROW_SPACING;
 
   const ts = Date.now();
 
   // Generate nodes
   const ideaPositions = centerPositions(1, COLUMN_X[0], totalHeight);
-  const featurePositions = centerPositions(features.length, COLUMN_X[1], totalHeight);
-  const screenPositions = centerPositions(screens.length, COLUMN_X[2], totalHeight);
+  const featurePositions = centerPositions(
+    detailedFeatures.length || features.length,
+    COLUMN_X[1],
+    totalHeight
+  );
+  const screenPositions = centerPositions(
+    detailedScreens.length || screens.length,
+    COLUMN_X[2],
+    totalHeight
+  );
   const techStackPositions = centerPositions(techStack.length, COLUMN_X[3], totalHeight);
   const promptPositions = centerPositions(promptCount, COLUMN_X[4], totalHeight);
 
@@ -64,7 +96,7 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
     type: 'idea',
     position: ideaPositions[0],
     data: {
-      appName: '',
+      appName: input.appName ?? '',
       description: input.description,
       targetUser: input.targetUser,
       coreProblem: input.coreProblem,
@@ -73,28 +105,36 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
     } as IdeaNodeData,
   } as SpexlyNode;
 
-  const featureNodes: SpexlyNode[] = features.map((name, i) => ({
+  const featureSource = detailedFeatures.length
+    ? detailedFeatures
+    : features.map((featureName) => ({ featureName }));
+
+  const featureNodes: SpexlyNode[] = featureSource.map((item, i) => ({
     id: `feature-${ts}-${i}`,
     type: 'feature' as const,
     position: featurePositions[i],
     data: {
-      featureName: name,
-      description: '',
-      priority: 'Must' as const,
-      status: 'Planned' as const,
+      featureName: item.featureName,
+      description: item.description ?? '',
+      priority: normalizePriority(item.priority),
+      status: normalizeStatus(item.status),
       expanded: false,
       completed: false,
     } as FeatureNodeData,
   })) as SpexlyNode[];
 
-  const screenNodes: SpexlyNode[] = screens.map((name, i) => ({
+  const screenSource = detailedScreens.length
+    ? detailedScreens
+    : screens.map((screenName) => ({ screenName }));
+
+  const screenNodes: SpexlyNode[] = screenSource.map((item, i) => ({
     id: `screen-${ts}-${i}`,
     type: 'screen' as const,
     position: screenPositions[i],
     data: {
-      screenName: name,
-      description: '',
-      keyElements: '',
+      screenName: item.screenName,
+      description: item.description ?? '',
+      keyElements: item.keyElements ?? '',
       expanded: false,
       completed: false,
     } as ScreenNodeData,

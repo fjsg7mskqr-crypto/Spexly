@@ -87,6 +87,32 @@ export const importDailyRateLimiter = redis
   : null;
 
 /**
+ * Rate limiter for AI wizard enhancement (hourly)
+ * Limit: 5 enhancements per hour per user
+ */
+export const wizardHourlyRateLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(5, '1 h'),
+      analytics: true,
+      prefix: 'ratelimit:wizard:hour',
+    })
+  : null;
+
+/**
+ * Rate limiter for AI wizard enhancement (daily)
+ * Limit: 20 enhancements per day per user
+ */
+export const wizardDailyRateLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(20, '24 h'),
+      analytics: true,
+      prefix: 'ratelimit:wizard:day',
+    })
+  : null;
+
+/**
  * Helper to check rate limit and throw error if exceeded
  * Returns true if allowed, false if rate limited
  */
