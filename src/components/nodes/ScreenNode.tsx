@@ -33,7 +33,7 @@ function ScreenNodeComponent({ id, data }: NodeProps<ScreenNodeType>) {
       <div>
         <label className="block text-xs text-slate-400 uppercase tracking-wide mb-1">Description</label>
         <textarea
-          className={`${inputClass} min-h-[60px] resize-none`}
+          className={`${inputClass} min-h-[90px] resize-y`}
           placeholder="Description"
           rows={2}
           value={data.description}
@@ -43,7 +43,7 @@ function ScreenNodeComponent({ id, data }: NodeProps<ScreenNodeType>) {
       <div>
         <label className="block text-xs text-slate-400 uppercase tracking-wide mb-1">Key Elements</label>
         <textarea
-          className={`${inputClass} min-h-[60px] resize-none`}
+          className={`${inputClass} min-h-[90px] resize-y`}
           placeholder="Key elements"
           rows={2}
           value={data.keyElements}

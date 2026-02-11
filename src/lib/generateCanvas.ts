@@ -26,8 +26,8 @@ export interface GenerateCanvasOutput {
   edges: SpexlyEdge[];
 }
 
-const COLUMN_X = [0, 400, 800, 1200, 1600];
-const ROW_SPACING = 180;
+const COLUMN_X = [0, 360, 720, 1080, 1440];
+const ROW_SPACING = 10;
 
 function centerPositions(count: number, columnX: number, totalHeight: number): { x: number; y: number }[] {
   if (count === 0) return [];
@@ -68,7 +68,7 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
       description: input.description,
       targetUser: input.targetUser,
       coreProblem: input.coreProblem,
-      expanded: true,
+      expanded: false,
       completed: false,
     } as IdeaNodeData,
   } as SpexlyNode;
@@ -82,7 +82,7 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
       description: '',
       priority: 'Must' as const,
       status: 'Planned' as const,
-      expanded: true,
+      expanded: false,
       completed: false,
     } as FeatureNodeData,
   })) as SpexlyNode[];
@@ -95,7 +95,7 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
       screenName: name,
       description: '',
       keyElements: '',
-      expanded: true,
+      expanded: false,
       completed: false,
     } as ScreenNodeData,
   })) as SpexlyNode[];
@@ -108,7 +108,7 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
       category: item.category,
       toolName: item.toolName,
       notes: item.notes ?? '',
-      expanded: true,
+      expanded: false,
       completed: false,
     } as TechStackNodeData,
   })) as SpexlyNode[];
@@ -123,7 +123,7 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
             promptText: item.text,
             targetTool: item.targetTool ?? input.tool,
             resultNotes: '',
-            expanded: true,
+            expanded: false,
             completed: false,
           } as PromptNodeData,
         }))
@@ -133,13 +133,13 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
             type: 'prompt' as const,
             position: promptPositions[0],
             data: {
-              promptText: '',
-              targetTool: input.tool,
-              resultNotes: '',
-              expanded: true,
-              completed: false,
-            } as PromptNodeData,
-          },
+            promptText: '',
+            targetTool: input.tool,
+            resultNotes: '',
+            expanded: false,
+            completed: false,
+          } as PromptNodeData,
+        },
         ];
 
   const nodes: SpexlyNode[] = [

@@ -24,7 +24,7 @@ function PromptNodeComponent({ id, data }: NodeProps<PromptNodeType>) {
       <div>
         <label className="block text-xs text-slate-400 uppercase tracking-wide mb-1">Prompt</label>
         <textarea
-          className={`${inputClass} min-h-[60px] resize-none`}
+          className={`${inputClass} min-h-[110px] resize-y`}
           placeholder="Prompt text"
           rows={3}
           value={data.promptText}
@@ -49,7 +49,7 @@ function PromptNodeComponent({ id, data }: NodeProps<PromptNodeType>) {
       <div>
         <label className="block text-xs text-slate-400 uppercase tracking-wide mb-1">Result Notes</label>
         <textarea
-          className={`${inputClass} min-h-[60px] resize-none`}
+          className={`${inputClass} min-h-[90px] resize-y`}
           placeholder="Result notes"
           rows={2}
           value={data.resultNotes}

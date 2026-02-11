@@ -14,6 +14,7 @@ import {
 import { useCanvasStore } from '@/store/canvasStore';
 import { Toolbar } from './Toolbar';
 import { DocumentImportModal } from './DocumentImportModal';
+import { TemplatesModal } from './TemplatesModal';
 import { ProgressDashboard } from '@/components/dashboard/ProgressDashboard';
 import { GRID_SNAP, CANVAS_BG_COLOR, CANVAS_DOT_COLOR, EDGE_COLOR } from '@/lib/constants';
 
@@ -64,6 +65,8 @@ export function Canvas() {
 
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
+  const resetLayout = useCanvasStore((s) => s.resetLayout);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -105,6 +108,8 @@ export function Canvas() {
         isDashboardOpen={isDashboardOpen}
         onToggleDashboard={() => setIsDashboardOpen((prev) => !prev)}
         onOpenImport={() => setIsImportOpen(true)}
+        onOpenTemplates={() => setIsTemplatesOpen(true)}
+        onResetLayout={resetLayout}
       />
       <ReactFlow
         nodes={nodes}
@@ -153,6 +158,7 @@ export function Canvas() {
         onClose={() => setIsDashboardOpen(false)}
       />
       <DocumentImportModal isOpen={isImportOpen} onClose={() => setIsImportOpen(false)} />
+      <TemplatesModal isOpen={isTemplatesOpen} onClose={() => setIsTemplatesOpen(false)} />
     </div>
   );
 }

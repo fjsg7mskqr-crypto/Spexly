@@ -25,6 +25,10 @@ interface CanvasState {
   edges: SpexlyEdge[];
   past: HistoryEntry[];
   future: HistoryEntry[];
+  baselineNodes: SpexlyNode[];
+  baselineEdges: SpexlyEdge[];
+  nodeHeights: Record<string, number>;
+  expandShiftMap: Record<string, { affectedIds: string[]; delta: number }>;
 
   // Project metadata
   projectId: string | null;
@@ -56,6 +60,8 @@ interface CanvasState {
   getFeatureStatusCounts: () => Record<FeatureStatus, number>;
   setNodesAndEdges: (nodes: SpexlyNode[], edges: SpexlyEdge[]) => void;
   appendNodesAndEdges: (nodes: SpexlyNode[], edges: SpexlyEdge[]) => void;
+  resetLayout: () => void;
+  setNodeHeight: (nodeId: string, height: number) => void;
 
   // Project lifecycle
   loadProject: (id: string, name: string, nodes: SpexlyNode[], edges: SpexlyEdge[]) => void;
@@ -64,11 +70,167 @@ interface CanvasState {
   setSaveStatus: (saving: boolean) => void;
 }
 
+const BASE_VERTICAL_GAP = 0;
+const EXPANDED_VERTICAL_GAP = 220;
+const COLUMN_X = [0, 360, 720, 1080, 1440, 1800];
+const ROW_SPACING = 210;
+const NODE_WIDTH = 320;
+const NODE_GAP = 10;
+
+function getNodeHeight(node: SpexlyNode, heightMap?: Record<string, number>): number {
+  if (heightMap && heightMap[node.id]) {
+    return heightMap[node.id];
+  }
+  const expanded = Boolean(node.data?.expanded);
+  if (node.type === 'prompt' || node.type === 'note') {
+    return expanded ? 560 : 240;
+  }
+  if (node.type === 'idea' || node.type === 'feature' || node.type === 'screen') {
+    return expanded ? 520 : 220;
+  }
+  if (node.type === 'techStack') {
+    return expanded ? 480 : 200;
+  }
+  return expanded ? 520 : 220;
+}
+
+function nodesOverlap(
+  a: SpexlyNode,
+  b: SpexlyNode,
+  heightMap?: Record<string, number>
+): boolean {
+  const aWidth = NODE_WIDTH;
+  const bWidth = NODE_WIDTH;
+  const aHeight = getNodeHeight(a, heightMap);
+  const bHeight = getNodeHeight(b, heightMap);
+
+  const ax1 = a.position.x - NODE_GAP / 2;
+  const ay1 = a.position.y - NODE_GAP / 2;
+  const ax2 = a.position.x + aWidth + NODE_GAP / 2;
+  const ay2 = a.position.y + aHeight + NODE_GAP / 2;
+
+  const bx1 = b.position.x - NODE_GAP / 2;
+  const by1 = b.position.y - NODE_GAP / 2;
+  const bx2 = b.position.x + bWidth + NODE_GAP / 2;
+  const by2 = b.position.y + bHeight + NODE_GAP / 2;
+
+  return ax1 < bx2 && ax2 > bx1 && ay1 < by2 && ay2 > by1;
+}
+
+function resolveOverlap(
+  nodes: SpexlyNode[],
+  movedId: string,
+  targetPosition?: { x: number; y: number },
+  heightMap?: Record<string, number>
+): SpexlyNode[] {
+  const moved = nodes.find((n) => n.id === movedId);
+  if (!moved) return nodes;
+
+  const base = targetPosition ?? moved.position;
+  const stepX = 60;
+  const stepY = 60;
+  const maxRadius = 6;
+
+  const isFree = (pos: { x: number; y: number }) => {
+    const probe = { ...moved, position: pos };
+    return !nodes.some((n) => n.id !== moved.id && nodesOverlap(probe, n, heightMap));
+  };
+
+  if (isFree(base)) {
+    moved.position = base;
+    return nodes;
+  }
+
+  let best: { x: number; y: number } | null = null;
+  let bestDist = Number.POSITIVE_INFINITY;
+
+  for (let r = 1; r <= maxRadius; r++) {
+    for (let dx = -r; dx <= r; dx++) {
+      for (let dy = -r; dy <= r; dy++) {
+        if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue;
+        const candidate = { x: base.x + dx * stepX, y: base.y + dy * stepY };
+        if (!isFree(candidate)) continue;
+        const dist = Math.hypot(candidate.x - base.x, candidate.y - base.y);
+        if (dist < bestDist) {
+          bestDist = dist;
+          best = candidate;
+        }
+      }
+    }
+    if (best) break;
+  }
+
+  if (best) {
+    moved.position = best;
+  }
+
+  return nodes;
+}
+
+function autoSpaceNodes(
+  nodes: SpexlyNode[],
+  minGap: number,
+  heightMap?: Record<string, number>
+): SpexlyNode[] {
+  const grouped = new Map<number, SpexlyNode[]>();
+  for (const node of nodes) {
+    const key = Math.round(node.position.x / 100) * 100;
+    const bucket = grouped.get(key) ?? [];
+    bucket.push(node);
+    grouped.set(key, bucket);
+  }
+
+  for (const bucket of grouped.values()) {
+    bucket.sort((a, b) => a.position.y - b.position.y);
+    for (let i = 1; i < bucket.length; i++) {
+      const prev = bucket[i - 1];
+      const current = bucket[i];
+      const minY = prev.position.y + getNodeHeight(prev, heightMap) + minGap;
+      if (current.position.y < minY) {
+        current.position = { ...current.position, y: minY };
+      }
+    }
+  }
+
+  return [...nodes];
+}
+
+function alignByType(nodes: SpexlyNode[]): SpexlyNode[] {
+  const typeOrder: SpexlyNodeType[] = ['idea', 'feature', 'screen', 'techStack', 'prompt', 'note'];
+  const grouped = new Map<SpexlyNodeType, SpexlyNode[]>();
+  for (const node of nodes) {
+    const bucket = grouped.get(node.type as SpexlyNodeType) ?? [];
+    bucket.push(node);
+    grouped.set(node.type as SpexlyNodeType, bucket);
+  }
+
+  const maxCount = Math.max(1, ...typeOrder.map((t) => (grouped.get(t)?.length ?? 0)));
+  const totalHeight = (maxCount - 1) * ROW_SPACING;
+  const startY = -totalHeight / 2;
+
+  for (let i = 0; i < typeOrder.length; i++) {
+    const type = typeOrder[i];
+    const bucket = grouped.get(type) ?? [];
+    for (let j = 0; j < bucket.length; j++) {
+      bucket[j].position = {
+        x: COLUMN_X[i] ?? i * 420,
+        y: startY + j * ROW_SPACING,
+      };
+    }
+  }
+
+  return [...nodes];
+}
+
 export const useCanvasStore = create<CanvasState>((set, get) => ({
   nodes: [],
   edges: [],
   past: [],
   future: [],
+  baselineNodes: [],
+  baselineEdges: [],
+  nodeHeights: {},
+  expandShiftMap: {},
 
   projectId: null,
   projectName: '',
@@ -81,7 +243,18 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     );
     if (significantChange) get().pushHistory();
 
-    set({ nodes: applyNodeChanges(changes, get().nodes) as SpexlyNode[] });
+    let nextNodes = applyNodeChanges(changes, get().nodes) as SpexlyNode[];
+    const heightMap = get().nodeHeights;
+
+    const moved = changes.find((c) => c.type === 'position' && c.dragging === false);
+    if (moved && 'id' in moved) {
+      const movedNode = nextNodes.find((n) => n.id === moved.id);
+      const targetPosition = movedNode ? { ...movedNode.position } : undefined;
+      nextNodes = resolveOverlap(nextNodes, moved.id as string, targetPosition, heightMap);
+      nextNodes = autoSpaceNodes(nextNodes, BASE_VERTICAL_GAP, heightMap);
+    }
+
+    set({ nodes: nextNodes });
   },
 
   onEdgesChange: (changes) => {
@@ -99,10 +272,40 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   addNode: (type, position) => {
     get().pushHistory();
     const config = NODE_TYPE_CONFIGS[type];
+    const NODE_HEIGHT = 240;
+
+    const existingNodes = get().nodes;
+    const isOverlapping = (pos: { x: number; y: number }) => {
+      return existingNodes.some((node) => {
+        const overlapX = Math.abs(node.position.x - pos.x) < NODE_WIDTH + NODE_GAP;
+        const overlapY = Math.abs(node.position.y - pos.y) < NODE_HEIGHT + NODE_GAP;
+        return overlapX && overlapY;
+      });
+    };
+
+    const stepX = NODE_WIDTH + NODE_GAP;
+    const stepY = NODE_HEIGHT + NODE_GAP;
+    let finalPosition = position;
+    if (isOverlapping(position)) {
+      const attempts = 25;
+      for (let i = 0; i < attempts; i++) {
+        const dx = (i % 5) - 2;
+        const dy = Math.floor(i / 5) - 2;
+        const candidate = {
+          x: position.x + dx * stepX,
+          y: position.y + dy * stepY,
+        };
+        if (!isOverlapping(candidate)) {
+          finalPosition = candidate;
+          break;
+        }
+      }
+    }
+
     const newNode = {
       id: `${type}-${Date.now()}`,
       type,
-      position,
+      position: finalPosition,
       data: { ...config.defaultData },
     } as SpexlyNode;
     set({ nodes: [...get().nodes, newNode] });
@@ -143,13 +346,68 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   },
 
   toggleNodeExpanded: (nodeId) => {
-    set({
-      nodes: get().nodes.map((node) =>
-        node.id === nodeId
-          ? { ...node, data: { ...node.data, expanded: !node.data.expanded } }
-          : node
-      ) as SpexlyNode[],
-    });
+    const nodes = get().nodes.map((node) =>
+      node.id === nodeId
+        ? { ...node, data: { ...node.data, expanded: !node.data.expanded } }
+        : node
+    ) as SpexlyNode[];
+
+    const target = nodes.find((n) => n.id === nodeId);
+    if (!target) {
+      set({ nodes });
+      return;
+    }
+
+    // Bring expanded node to front
+    if (target.data.expanded) {
+      target.zIndex = 1000;
+    } else if (typeof target.zIndex !== 'undefined') {
+      target.zIndex = 0;
+    }
+
+    const wasExpanded = !target.data.expanded;
+    const prevHeight = getNodeHeight(
+      {
+        ...target,
+        data: { ...target.data, expanded: wasExpanded },
+      } as SpexlyNode,
+      get().nodeHeights
+    );
+    const nextHeight = getNodeHeight(target, get().nodeHeights);
+    const delta = nextHeight - prevHeight;
+    const columnKey = Math.round(target.position.x / 100) * 100;
+
+    if (delta !== 0 && target.data.expanded) {
+      const affectedIds: string[] = [];
+      for (const node of nodes) {
+        const key = Math.round(node.position.x / 100) * 100;
+        if (key === columnKey && node.id !== target.id && node.position.y > target.position.y) {
+          node.position = { ...node.position, y: node.position.y + delta };
+          affectedIds.push(node.id);
+        }
+      }
+      const nextMap = { ...get().expandShiftMap, [nodeId]: { affectedIds, delta } };
+      set({ nodes, expandShiftMap: nextMap });
+      return;
+    }
+
+    if (delta !== 0 && !target.data.expanded) {
+      const map = get().expandShiftMap[nodeId];
+      if (map) {
+        const { affectedIds, delta: storedDelta } = map;
+        for (const node of nodes) {
+          if (affectedIds.includes(node.id)) {
+            node.position = { ...node.position, y: node.position.y - storedDelta };
+          }
+        }
+        const nextMap = { ...get().expandShiftMap };
+        delete nextMap[nodeId];
+        set({ nodes, expandShiftMap: nextMap });
+        return;
+      }
+    }
+
+    set({ nodes });
   },
 
   toggleNodeCompleted: (nodeId) => {
@@ -241,7 +499,14 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
 
   setNodesAndEdges: (nodes, edges) => {
     get().pushHistory();
-    set({ nodes, edges });
+    const spaced = autoSpaceNodes(nodes, BASE_VERTICAL_GAP, get().nodeHeights);
+    set({
+      nodes: spaced,
+      edges,
+      baselineNodes: JSON.parse(JSON.stringify(spaced)),
+      baselineEdges: JSON.parse(JSON.stringify(edges)),
+      expandShiftMap: {},
+    });
   },
 
   appendNodesAndEdges: (nodes, edges) => {
@@ -256,7 +521,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       const ys = existingNodes.map((n) => n.position.y);
       const maxX = Math.max(...xs);
       const minY = Math.min(...ys);
-      offsetX = maxX + 300;
+      offsetX = maxX + 380;
       offsetY = minY;
     }
 
@@ -268,10 +533,28 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       },
     })) as SpexlyNode[];
 
+    const spacedAdjusted = autoSpaceNodes(adjustedNodes, BASE_VERTICAL_GAP, get().nodeHeights);
+
     set({
-      nodes: [...existingNodes, ...adjustedNodes],
+      nodes: [...existingNodes, ...spacedAdjusted],
       edges: [...get().edges, ...edges],
+      expandShiftMap: {},
     });
+  },
+
+  resetLayout: () => {
+    get().pushHistory();
+    const { baselineNodes, baselineEdges, nodes, edges } = get();
+    if (baselineNodes.length > 0) {
+      set({
+        nodes: JSON.parse(JSON.stringify(baselineNodes)),
+        edges: JSON.parse(JSON.stringify(baselineEdges)),
+      });
+      return;
+    }
+
+    const aligned = alignByType(JSON.parse(JSON.stringify(nodes)) as SpexlyNode[]);
+    set({ nodes: aligned, edges });
   },
 
   loadProject: (id, name, nodes, edges) => {
@@ -284,6 +567,10 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       future: [],
       isSaving: false,
       lastSavedAt: null,
+      baselineNodes: JSON.parse(JSON.stringify(nodes)),
+      baselineEdges: JSON.parse(JSON.stringify(edges)),
+      nodeHeights: {},
+      expandShiftMap: {},
     });
   },
 
@@ -297,6 +584,10 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       future: [],
       isSaving: false,
       lastSavedAt: null,
+      baselineNodes: [],
+      baselineEdges: [],
+      nodeHeights: {},
+      expandShiftMap: {},
     });
   },
 
@@ -309,5 +600,12 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       isSaving: saving,
       ...(saving ? {} : { lastSavedAt: new Date() }),
     });
+  },
+
+  setNodeHeight: (nodeId, height) => {
+    const current = get().nodeHeights[nodeId];
+    if (current && Math.abs(current - height) < 6) return;
+    const nextMap = { ...get().nodeHeights, [nodeId]: height };
+    set({ nodeHeights: nextMap });
   },
 }));

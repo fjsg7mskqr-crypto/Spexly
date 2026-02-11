@@ -233,7 +233,7 @@ export function parseDocumentToCanvas(text: string): DocumentImportOutput {
         title: 'Imported Document',
         body: parsed.sourceExcerpt,
         colorTag: 'Slate',
-        expanded: true,
+        expanded: false,
         completed: false,
       } as NoteNodeData,
     };

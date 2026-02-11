@@ -7,6 +7,7 @@ import { NodeWrapper } from './NodeWrapper'
 const mockToggleNodeExpanded = vi.fn()
 const mockDeleteNode = vi.fn()
 const mockToggleNodeCompleted = vi.fn()
+const mockSetNodeHeight = vi.fn()
 
 vi.mock('@/store/canvasStore', () => ({
   useCanvasStore: (selector: (s: Record<string, unknown>) => unknown) =>
@@ -14,6 +15,7 @@ vi.mock('@/store/canvasStore', () => ({
       toggleNodeExpanded: mockToggleNodeExpanded,
       deleteNode: mockDeleteNode,
       toggleNodeCompleted: mockToggleNodeCompleted,
+      setNodeHeight: mockSetNodeHeight,
     }),
 }))
 

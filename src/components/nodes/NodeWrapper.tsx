@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, type ReactNode } from 'react';
+import { memo, type ReactNode, useEffect, useRef } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { ChevronRight, Trash2, Check } from 'lucide-react';
 import { useCanvasStore } from '@/store/canvasStore';
@@ -31,16 +31,32 @@ function NodeWrapperInner({
   const toggleNodeExpanded = useCanvasStore((s) => s.toggleNodeExpanded);
   const toggleNodeCompleted = useCanvasStore((s) => s.toggleNodeCompleted);
   const deleteNode = useCanvasStore((s) => s.deleteNode);
+  const setNodeHeight = useCanvasStore((s) => s.setNodeHeight);
   const config = NODE_TYPE_CONFIGS[type];
   const Icon = config.icon;
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) return;
+    const update = () => {
+      const height = el.getBoundingClientRect().height;
+      setNodeHeight(id, height);
+    };
+    update();
+    const observer = new ResizeObserver(() => update());
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [id, setNodeHeight]);
 
   return (
     <div
-      className={`node-appear group relative w-[280px] rounded-xl border shadow-lg backdrop-blur-sm transition-all duration-200 hover:shadow-xl ${
+      ref={wrapperRef}
+      className={`node-appear group relative w-[320px] rounded-xl border shadow-lg backdrop-blur-sm transition-all duration-200 hover:shadow-xl ${
         completed
           ? 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-slate-800/90 to-emerald-500/5 shadow-emerald-900/10'
           : 'border-slate-700/50 bg-slate-800/90 shadow-black/20 hover:border-slate-600/80 hover:shadow-black/30'
-      }`}
+      } ${expanded ? 'ring-2 ring-sky-400/50 node-glow' : ''}`}
       style={{
         borderLeftWidth: '3px',
         borderLeftColor: completed ? '#34D399' : config.color,
@@ -99,11 +115,14 @@ function NodeWrapperInner({
       <div
         className="overflow-hidden transition-all duration-200 ease-in-out"
         style={{
-          maxHeight: expanded ? '500px' : '0px',
+          maxHeight: expanded ? '720px' : '0px',
           opacity: expanded ? 1 : 0,
         }}
       >
-        <div className={`space-y-3 px-4 pb-4 pt-1 transition-opacity duration-200 ${completed ? 'opacity-50' : ''}`}>
+        <div
+          className={`space-y-3 px-4 pb-4 pt-1 transition-opacity duration-200 ${completed ? 'opacity-50' : ''} overflow-y-auto`}
+          style={{ maxHeight: '650px' }}
+        >
           {children}
         </div>
       </div>

@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, BarChart3, Cloud, CloudOff, FileText, Loader2 } from 'lucide-react';
+import { ArrowLeft, BarChart3, Cloud, CloudOff, FileText, LayoutGrid, Loader2, RotateCcw } from 'lucide-react';
 import { useCanvasStore } from '@/store/canvasStore';
 import { AddNodeMenu } from './AddNodeMenu';
 
@@ -9,6 +9,8 @@ interface ToolbarProps {
   isDashboardOpen: boolean;
   onToggleDashboard: () => void;
   onOpenImport: () => void;
+  onOpenTemplates: () => void;
+  onResetLayout: () => void;
 }
 
 function SaveStatus() {
@@ -44,7 +46,13 @@ function SaveStatus() {
   );
 }
 
-export function Toolbar({ isDashboardOpen, onToggleDashboard, onOpenImport }: ToolbarProps) {
+export function Toolbar({
+  isDashboardOpen,
+  onToggleDashboard,
+  onOpenImport,
+  onOpenTemplates,
+  onResetLayout,
+}: ToolbarProps) {
   const projectName = useCanvasStore((s) => s.projectName);
 
   return (
@@ -83,6 +91,20 @@ export function Toolbar({ isDashboardOpen, onToggleDashboard, onOpenImport }: To
         >
           <BarChart3 size={16} />
           Stats
+        </button>
+        <button
+          onClick={onResetLayout}
+          className="flex items-center gap-2 rounded-lg border border-white/10 bg-slate-800 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-slate-700"
+        >
+          <RotateCcw size={16} />
+          Reset layout
+        </button>
+        <button
+          onClick={onOpenTemplates}
+          className="flex items-center gap-2 rounded-lg border border-white/10 bg-slate-800 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-slate-700"
+        >
+          <LayoutGrid size={16} />
+          Templates
         </button>
         <AddNodeMenu />
       </div>

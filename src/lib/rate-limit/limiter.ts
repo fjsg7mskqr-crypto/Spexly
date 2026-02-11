@@ -61,6 +61,32 @@ export const canvasSaveRateLimiter = redis
   : null;
 
 /**
+ * Rate limiter for document import (hourly)
+ * Limit: 3 imports per hour per user
+ */
+export const importHourlyRateLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(3, '1 h'),
+      analytics: true,
+      prefix: 'ratelimit:import:hour',
+    })
+  : null;
+
+/**
+ * Rate limiter for document import (daily)
+ * Limit: 10 imports per day per user
+ */
+export const importDailyRateLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(10, '24 h'),
+      analytics: true,
+      prefix: 'ratelimit:import:day',
+    })
+  : null;
+
+/**
  * Helper to check rate limit and throw error if exceeded
  * Returns true if allowed, false if rate limited
  */

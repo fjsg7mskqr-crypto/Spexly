@@ -30,7 +30,7 @@ describe('constants', () => {
       expect(config.color).toMatch(/^#[0-9A-Fa-f]{6}$/)
       expect(config.icon).toBeDefined() // LucideIcon is a React component
       expect(config.defaultData).toBeDefined()
-      expect(config.defaultData.expanded).toBe(true)
+      expect(config.defaultData.expanded).toBe(false)
     })
 
     it('idea config has correct default data shape', () => {

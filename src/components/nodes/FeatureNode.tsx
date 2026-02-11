@@ -37,7 +37,7 @@ function FeatureNodeComponent({ id, data }: NodeProps<FeatureNodeType>) {
       <div>
         <label className="block text-xs text-slate-400 uppercase tracking-wide mb-1">Description</label>
         <textarea
-          className={`${inputClass} min-h-[60px] resize-none`}
+          className={`${inputClass} min-h-[90px] resize-y`}
           placeholder="Description"
           rows={2}
           value={data.description}

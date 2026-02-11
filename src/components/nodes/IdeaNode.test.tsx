@@ -13,6 +13,7 @@ vi.mock('@/store/canvasStore', () => ({
       toggleNodeExpanded: vi.fn(),
       deleteNode: vi.fn(),
       toggleNodeCompleted: vi.fn(),
+      setNodeHeight: vi.fn(),
     }),
 }))
 

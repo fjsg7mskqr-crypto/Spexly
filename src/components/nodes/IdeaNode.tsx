@@ -33,7 +33,7 @@ function IdeaNodeComponent({ id, data }: NodeProps<IdeaNodeType>) {
       <div>
         <label className="block text-xs text-slate-400 uppercase tracking-wide mb-1">Description</label>
         <textarea
-          className={`${inputClass} min-h-[60px] resize-none`}
+          className={`${inputClass} min-h-[90px] resize-y`}
           placeholder="Description"
           rows={2}
           value={data.description}
@@ -52,7 +52,7 @@ function IdeaNodeComponent({ id, data }: NodeProps<IdeaNodeType>) {
       <div>
         <label className="block text-xs text-slate-400 uppercase tracking-wide mb-1">Core Problem</label>
         <textarea
-          className={`${inputClass} min-h-[60px] resize-none`}
+          className={`${inputClass} min-h-[90px] resize-y`}
           placeholder="Core problem"
           rows={2}
           value={data.coreProblem}

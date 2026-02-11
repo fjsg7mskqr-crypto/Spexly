@@ -32,7 +32,7 @@ describe('canvasStore', () => {
         description: '',
         targetUser: '',
         coreProblem: '',
-        expanded: true,
+        expanded: false,
       })
     })
 
@@ -55,9 +55,9 @@ describe('canvasStore', () => {
       const { nodes } = useCanvasStore.getState()
       expect(nodes).toHaveLength(6)
 
-      // Each should have expanded: true
+      // Each should have expanded: false
       nodes.forEach((node) => {
-        expect(node.data.expanded).toBe(true)
+        expect(node.data.expanded).toBe(false)
       })
 
       // Spot-check specific types
@@ -92,7 +92,7 @@ describe('canvasStore', () => {
 
       const node = useCanvasStore.getState().nodes[0]
       expect(node.data.appName).toBe('My App')
-      expect(node.data.expanded).toBe(true) // preserved
+      expect(node.data.expanded).toBe(false) // preserved
     })
 
     it('does not push history (lightweight operation)', () => {
@@ -204,13 +204,13 @@ describe('canvasStore', () => {
       store.addNode('idea', { x: 0, y: 0 })
       const nodeId = useCanvasStore.getState().nodes[0].id
 
-      expect(useCanvasStore.getState().nodes[0].data.expanded).toBe(true)
-
-      store.toggleNodeExpanded(nodeId)
       expect(useCanvasStore.getState().nodes[0].data.expanded).toBe(false)
 
       store.toggleNodeExpanded(nodeId)
       expect(useCanvasStore.getState().nodes[0].data.expanded).toBe(true)
+
+      store.toggleNodeExpanded(nodeId)
+      expect(useCanvasStore.getState().nodes[0].data.expanded).toBe(false)
     })
 
     it('only affects the target node', () => {
@@ -222,8 +222,8 @@ describe('canvasStore', () => {
       store.toggleNodeExpanded(node1.id)
 
       const nodes = useCanvasStore.getState().nodes
-      expect(nodes[0].data.expanded).toBe(false)
-      expect(nodes[1].data.expanded).toBe(true)
+      expect(nodes[0].data.expanded).toBe(true)
+      expect(nodes[1].data.expanded).toBe(false)
     })
   })
 
@@ -427,9 +427,9 @@ describe('canvasStore', () => {
       // Use setState directly to avoid Date.now() ID collisions
       useCanvasStore.setState({
         nodes: [
-          { id: 'f1', type: 'feature', position: { x: 0, y: 0 }, data: { featureName: 'A', description: '', priority: 'Must', status: 'Planned', expanded: true } },
-          { id: 'f2', type: 'feature', position: { x: 100, y: 0 }, data: { featureName: 'B', description: '', priority: 'Must', status: 'Built', expanded: true } },
-          { id: 'f3', type: 'feature', position: { x: 200, y: 0 }, data: { featureName: 'C', description: '', priority: 'Must', status: 'Built', expanded: true } },
+          { id: 'f1', type: 'feature', position: { x: 0, y: 0 }, data: { featureName: 'A', description: '', priority: 'Must', status: 'Planned', expanded: false } },
+          { id: 'f2', type: 'feature', position: { x: 100, y: 0 }, data: { featureName: 'B', description: '', priority: 'Must', status: 'Built', expanded: false } },
+          { id: 'f3', type: 'feature', position: { x: 200, y: 0 }, data: { featureName: 'C', description: '', priority: 'Must', status: 'Built', expanded: false } },
         ] as SpexlyNode[],
       })
 
@@ -458,7 +458,7 @@ describe('canvasStore', () => {
       store.addNode('idea', { x: 0, y: 0 })
 
       const newNodes: SpexlyNode[] = [
-        { id: 'new-1', type: 'feature', position: { x: 0, y: 0 }, data: { featureName: 'Auth', description: '', priority: 'Must' as const, status: 'Planned' as const, expanded: true } } as SpexlyNode,
+        { id: 'new-1', type: 'feature', position: { x: 0, y: 0 }, data: { featureName: 'Auth', description: '', priority: 'Must' as const, status: 'Planned' as const, expanded: false } } as SpexlyNode,
       ]
       store.setNodesAndEdges(newNodes, [])
 

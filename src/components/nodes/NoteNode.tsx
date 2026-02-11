@@ -13,7 +13,7 @@ const inputClass =
 function NoteNodeComponent({ id, data }: NodeProps<NoteNodeType>) {
   const updateNodeData = useCanvasStore((s) => s.updateNodeData);
 
-  const bodyPreview = data.body ? data.body.slice(0, 30) + (data.body.length > 30 ? '…' : '') : '';
+  const bodyPreview = data.body ? data.body.slice(0, 80) + (data.body.length > 80 ? '…' : '') : '';
   const currentColorTag = data.colorTag ?? NOTE_COLOR_OPTIONS[0].value;
   const colorOption =
     NOTE_COLOR_OPTIONS.find((option) => option.value === currentColorTag) ?? NOTE_COLOR_OPTIONS[0];
@@ -60,7 +60,7 @@ function NoteNodeComponent({ id, data }: NodeProps<NoteNodeType>) {
       <div>
         <label className="block text-xs text-slate-400 uppercase tracking-wide mb-1">Body</label>
         <textarea
-          className={`${inputClass} min-h-[60px] resize-none`}
+          className={`${inputClass} min-h-[110px] resize-y`}
           placeholder="Body"
           rows={3}
           value={data.body}

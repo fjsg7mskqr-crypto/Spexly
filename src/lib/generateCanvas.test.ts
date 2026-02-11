@@ -28,7 +28,7 @@ describe('generateCanvas', () => {
       description: 'A todo app',
       targetUser: 'Developers',
       coreProblem: 'Staying organized',
-      expanded: true,
+      expanded: false,
     });
   });
 
