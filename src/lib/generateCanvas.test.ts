@@ -14,10 +14,10 @@ function makeInput(overrides?: Partial<GenerateCanvasInput>): GenerateCanvasInpu
 }
 
 describe('generateCanvas', () => {
-  it('generates correct number of nodes (1 idea + N features + M screens + 1 prompt)', () => {
+  it('generates correct number of nodes (1 idea + N features + M screens)', () => {
     const result = generateCanvas(makeInput());
-    // 1 idea + 3 features + 3 screens + 1 prompt = 8
-    expect(result.nodes).toHaveLength(8);
+    // 1 idea + 3 features + 3 screens = 7 (no prompt when prompts are empty)
+    expect(result.nodes).toHaveLength(7);
   });
 
   it('generates idea node with correct data', () => {
@@ -46,11 +46,17 @@ describe('generateCanvas', () => {
     expect(screens.map((s) => s.data.screenName)).toEqual(['Login', 'Home', 'Settings']);
   });
 
-  it('generates prompt node with correct tool', () => {
-    const result = generateCanvas(makeInput({ tool: 'Bolt' }));
+  it('generates prompt node with correct tool when prompts provided', () => {
+    const result = generateCanvas(makeInput({ tool: 'Bolt', prompts: [{ text: 'Build the app' }] }));
     const prompt = result.nodes.find((n) => n.type === 'prompt');
     expect(prompt).toBeDefined();
     expect(prompt!.data.targetTool).toBe('Bolt');
+  });
+
+  it('generates no prompt nodes when prompts array is empty', () => {
+    const result = generateCanvas(makeInput());
+    const prompts = result.nodes.filter((n) => n.type === 'prompt');
+    expect(prompts).toHaveLength(0);
   });
 
   it('creates edges from idea to each feature', () => {
@@ -75,8 +81,8 @@ describe('generateCanvas', () => {
     }
   });
 
-  it('creates edges from each screen to prompt', () => {
-    const result = generateCanvas(makeInput());
+  it('creates edges from each screen to prompt when prompts provided', () => {
+    const result = generateCanvas(makeInput({ prompts: [{ text: 'Build it' }] }));
     const prompt = result.nodes.find((n) => n.type === 'prompt')!;
     const screens = result.nodes.filter((n) => n.type === 'screen');
     const promptEdges = result.edges.filter((e) => e.target === prompt.id);
@@ -106,8 +112,8 @@ describe('generateCanvas', () => {
     const result = generateCanvas(makeInput({ features: [] }));
     const features = result.nodes.filter((n) => n.type === 'feature');
     expect(features).toHaveLength(0);
-    // Still has idea + screens + prompt
-    expect(result.nodes).toHaveLength(5); // 1 + 0 + 3 + 1
+    // Still has idea + screens (no prompt when empty)
+    expect(result.nodes).toHaveLength(4); // 1 + 0 + 3
   });
 
   it('handles zero screens gracefully', () => {
@@ -123,8 +129,8 @@ describe('generateCanvas', () => {
 
   it('handles single feature and single screen', () => {
     const result = generateCanvas(makeInput({ features: ['Auth'], screens: ['Login'] }));
-    expect(result.nodes).toHaveLength(4); // 1 + 1 + 1 + 1
-    expect(result.edges).toHaveLength(3); // idea→feature, feature→screen, screen→prompt
+    expect(result.nodes).toHaveLength(3); // 1 + 1 + 1 (no prompt)
+    expect(result.edges).toHaveLength(2); // idea→feature, feature→screen
   });
 
   it('distributes features across screens when more features than screens', () => {

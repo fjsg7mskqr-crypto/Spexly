@@ -32,9 +32,17 @@ function makeProps(overrides?: Partial<NodeProps<FeatureNodeType>>): NodeProps<F
     id: 'feature-1',
     data: {
       featureName: '',
-      description: '',
+      summary: '',
+      problem: '',
+      userStory: '',
+      acceptanceCriteria: [],
       priority: 'Must',
       status: 'Planned',
+      effort: 'M',
+      dependencies: [],
+      risks: '',
+      metrics: '',
+      notes: '',
       expanded: true,
       completed: false,
     },
@@ -64,9 +72,12 @@ describe('FeatureNode', () => {
     render(<FeatureNode {...makeProps()} />)
 
     expect(screen.getByPlaceholderText('Feature name')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Description')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('1-2 sentence summary')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('What pain does this solve?')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('As a ___, I want ___ so that ___')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('One criterion per line')).toBeInTheDocument()
     const selects = screen.getAllByRole('combobox')
-    expect(selects).toHaveLength(2)
+    expect(selects).toHaveLength(3)
   })
 
   it('renders StatusBadge with current status', () => {
@@ -125,5 +136,16 @@ describe('FeatureNode', () => {
     await user.selectOptions(statusSelect, 'Built')
 
     expect(mockUpdateNodeData).toHaveBeenCalledWith('feature-1', { status: 'Built' })
+  })
+
+  it('calls updateNodeData when effort select changes', async () => {
+    const user = userEvent.setup()
+    render(<FeatureNode {...makeProps()} />)
+
+    const selects = screen.getAllByRole('combobox')
+    const effortSelect = selects[2]
+    await user.selectOptions(effortSelect, 'L')
+
+    expect(mockUpdateNodeData).toHaveBeenCalledWith('feature-1', { effort: 'L' })
   })
 })

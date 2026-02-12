@@ -14,8 +14,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Spexly",
-  description: "Plan your app visually. Build with clarity.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://spexly.com'),
+  title: {
+    default: 'Spexly',
+    template: '%s | Spexly',
+  },
+  description: 'Plan your app visually. Build with clarity.',
+  openGraph: {
+    title: 'Spexly',
+    description: 'Plan your app visually. Build with clarity.',
+    url: '/',
+    siteName: 'Spexly',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Spexly',
+    description: 'Plan your app visually. Build with clarity.',
+  },
   icons: {
     icon: "/spexly-logo.png",
     apple: "/spexly-logo.png",

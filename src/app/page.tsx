@@ -1,13 +1,15 @@
-import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
+import type { Metadata } from 'next';
+import { LandingPage } from '@/components/landing/LandingPage';
 
-export default async function Home() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+export const metadata: Metadata = {
+  title: 'Spec It Before You Ship It',
+  description:
+    'Plan your AI app visually before coding. Join the Spexly waitlist for early access and launch updates.',
+  alternates: {
+    canonical: '/',
+  },
+};
 
-  if (user) {
-    redirect('/dashboard');
-  } else {
-    redirect('/login');
-  }
+export default function HomePage() {
+  return <LandingPage />;
 }

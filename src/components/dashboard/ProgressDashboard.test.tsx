@@ -29,7 +29,22 @@ function makeFeatureNode(id: string, status: string): SpexlyNode {
     id,
     type: 'feature',
     position: { x: 0, y: 0 },
-    data: { featureName: id, description: '', priority: 'Must', status, expanded: true, completed: false },
+    data: {
+      featureName: id,
+      summary: '',
+      problem: '',
+      userStory: '',
+      acceptanceCriteria: [],
+      priority: 'Must',
+      status,
+      effort: 'M',
+      dependencies: [],
+      risks: '',
+      metrics: '',
+      notes: '',
+      expanded: true,
+      completed: false,
+    },
   } as SpexlyNode;
 }
 

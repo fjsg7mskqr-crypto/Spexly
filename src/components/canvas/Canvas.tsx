@@ -121,13 +121,13 @@ export function Canvas() {
         defaultEdgeOptions={defaultEdgeOptions}
         snapToGrid
         snapGrid={GRID_SNAP}
-        fitView
+        defaultViewport={{ x: 200, y: 300, zoom: 1 }}
         selectionOnDrag
         multiSelectionKeyCode="Shift"
         deleteKeyCode={null}
         colorMode="dark"
         proOptions={{ hideAttribution: true }}
-        minZoom={0.1}
+        minZoom={0.3}
         maxZoom={2}
       >
         <Background

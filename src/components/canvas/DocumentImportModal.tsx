@@ -3,19 +3,46 @@
 import { useMemo, useState } from 'react';
 import { X, FileText, Loader2 } from 'lucide-react';
 import { useCanvasStore } from '@/store/canvasStore';
-import { importDocumentWithAI } from '@/app/actions/import';
+import { importDocumentWithAI, smartImportDocument } from '@/app/actions/import';
 import { updateCanvasData } from '@/app/actions/projects';
+import { getPopulatedFields } from '@/lib/import/mergeStrategy';
+import type { SpexlyNode } from '@/types/nodes';
+import type { ExistingNodeSummary } from '@/types/nodes';
 
 interface DocumentImportModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+function getNodePrimaryName(node: SpexlyNode): string {
+  const data = node.data as Record<string, unknown>;
+  if (node.type === 'idea') return (data.appName as string) || '';
+  if (node.type === 'feature') return (data.featureName as string) || '';
+  if (node.type === 'screen') return (data.screenName as string) || '';
+  if (node.type === 'techStack') return (data.toolName as string) || '';
+  if (node.type === 'prompt') return (data.promptText as string) || '';
+  if (node.type === 'note') return (data.title as string) || '';
+  return '';
+}
+
+function buildExistingNodeSummaries(nodes: SpexlyNode[]): ExistingNodeSummary[] {
+  return nodes
+    .filter((node) => ['idea', 'feature', 'screen', 'techStack'].includes(node.type))
+    .map((node) => ({
+      id: node.id,
+      type: node.type as ExistingNodeSummary['type'],
+      name: getNodePrimaryName(node),
+      populatedFields: getPopulatedFields(node.data as Record<string, unknown>),
+    }));
+}
+
 export function DocumentImportModal({ isOpen, onClose }: DocumentImportModalProps) {
   const appendNodesAndEdges = useCanvasStore((s) => s.appendNodesAndEdges);
+  const smartImport = useCanvasStore((s) => s.smartImport);
+  const nodes = useCanvasStore((s) => s.nodes);
   const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState<{ type: 'success' | 'fallback'; message: string } | null>(null);
+  const [status, setStatus] = useState<{ type: 'success' | 'fallback' | 'smart'; message: string } | null>(null);
   const [isImporting, setIsImporting] = useState(false);
 
   const preview = useMemo(() => {
@@ -36,23 +63,58 @@ export function DocumentImportModal({ isOpen, onClose }: DocumentImportModalProp
 
     setIsImporting(true);
     try {
-      const { nodes, edges, mode } = await importDocumentWithAI(trimmed);
-      if (nodes.length === 0) {
-        setError('No importable content found. Try adding headings or bullet lists.');
-        return;
-      }
-      appendNodesAndEdges(nodes, edges);
-      const { projectId, nodes: currentNodes, edges: currentEdges } = useCanvasStore.getState();
-      if (projectId) {
-        useCanvasStore.getState().setSaveStatus(true);
-        await updateCanvasData(projectId, currentNodes, currentEdges);
-        useCanvasStore.getState().setSaveStatus(false);
-      }
-      if (mode === 'fallback') {
-        setStatus({ type: 'fallback', message: 'AI unavailable. Imported with standard parser.' });
+      const hasExistingNodes = nodes.length > 0;
+
+      if (hasExistingNodes) {
+        // Smart import path — fill existing nodes + create missing
+        const summaries = buildExistingNodeSummaries(nodes);
+        const result = await smartImportDocument(trimmed, summaries);
+
+        smartImport(result.updates, result.newNodes, result.newEdges);
+
+        const { projectId, nodes: currentNodes, edges: currentEdges } = useCanvasStore.getState();
+        if (projectId) {
+          useCanvasStore.getState().setSaveStatus(true);
+          await updateCanvasData(projectId, currentNodes, currentEdges);
+          useCanvasStore.getState().setSaveStatus(false);
+        }
+
+        const { summary } = result;
+        const parts: string[] = [];
+        if (summary.nodesUpdated > 0) {
+          parts.push(`Updated ${summary.nodesUpdated} nodes (${summary.fieldsFilledTotal} fields filled)`);
+        }
+        if (summary.nodesCreated > 0) {
+          parts.push(`created ${summary.nodesCreated} new nodes`);
+        }
+        if (parts.length === 0) {
+          parts.push('No changes needed');
+        }
+
+        setStatus({ type: 'smart', message: parts.join(', ') + '.' });
       } else {
-        setStatus({ type: 'success', message: 'AI import successful.' });
+        // Legacy path — empty canvas, create everything from scratch
+        const { nodes: importedNodes, edges, mode } = await importDocumentWithAI(trimmed);
+        if (importedNodes.length === 0) {
+          setError('No importable content found. Try adding headings or bullet lists.');
+          return;
+        }
+        appendNodesAndEdges(importedNodes, edges);
+
+        const { projectId, nodes: currentNodes, edges: currentEdges } = useCanvasStore.getState();
+        if (projectId) {
+          useCanvasStore.getState().setSaveStatus(true);
+          await updateCanvasData(projectId, currentNodes, currentEdges);
+          useCanvasStore.getState().setSaveStatus(false);
+        }
+
+        if (mode === 'fallback') {
+          setStatus({ type: 'fallback', message: 'AI unavailable. Imported with standard parser.' });
+        } else {
+          setStatus({ type: 'success', message: 'AI import successful.' });
+        }
       }
+
       setTimeout(() => {
         setStatus(null);
         onClose();
@@ -83,7 +145,7 @@ export function DocumentImportModal({ isOpen, onClose }: DocumentImportModalProp
 
         <div className="px-6 pb-6 pt-4">
           <p className="text-sm text-slate-300">
-          Paste a PRD, brief, or markdown. Headings like “Features”, “Screens”, and “Tech Stack” work best.
+          Paste a PRD, brief, or markdown. Headings like &quot;Features&quot;, &quot;Screens&quot;, and &quot;Tech Stack&quot; work best.
           </p>
 
           <textarea
@@ -103,7 +165,7 @@ export function DocumentImportModal({ isOpen, onClose }: DocumentImportModalProp
         {status && (
           <div
             className={`mt-3 rounded-lg border px-3 py-2 text-sm ${
-              status.type === 'success'
+              status.type === 'success' || status.type === 'smart'
                 ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'
                 : 'border-amber-500/20 bg-amber-500/10 text-amber-200'
             }`}

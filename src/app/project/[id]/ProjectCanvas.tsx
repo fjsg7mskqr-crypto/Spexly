@@ -22,7 +22,9 @@ export function ProjectCanvas({ project }: Props) {
     return () => {
       clearCanvas();
     };
-  }, [project.id, project.name, project.canvas_data, loadProject, clearCanvas]);
+    // Only reload when project ID changes - avoid canvas_data object reference changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project.id]);
 
   useAutoSave();
 

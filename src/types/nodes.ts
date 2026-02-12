@@ -6,6 +6,7 @@ export type SpexlyNodeType = 'idea' | 'feature' | 'screen' | 'techStack' | 'prom
 // Feature-specific enums
 export type FeaturePriority = 'Must' | 'Should' | 'Nice';
 export type FeatureStatus = 'Planned' | 'In Progress' | 'Built' | 'Broken' | 'Blocked';
+export type FeatureEffort = 'XS' | 'S' | 'M' | 'L' | 'XL';
 export type TechCategory = 'Frontend' | 'Backend' | 'Database' | 'Auth' | 'Hosting' | 'Other';
 export type TargetTool = 'Claude' | 'Bolt' | 'Cursor' | 'Lovable' | 'Replit' | 'Other';
 export type NoteColorTag = 'Slate' | 'Amber' | 'Emerald' | 'Sky' | 'Rose';
@@ -19,25 +20,68 @@ export interface IdeaNodeData {
   coreProblem: string;
   expanded: boolean;
   completed: boolean;
+  // AI Context Fields
+  projectArchitecture: string;
+  corePatterns: string[];
+  constraints: string[];
+  // Metadata
+  tags: string[];
+  estimatedHours: number | null;
+  version: number;
 }
 
 export interface FeatureNodeData {
   [key: string]: unknown;
   featureName: string;
-  description: string;
+  summary: string;
+  problem: string;
+  userStory: string;
+  acceptanceCriteria: string[];
   priority: FeaturePriority;
   status: FeatureStatus;
+  effort: FeatureEffort;
+  dependencies: string[];
+  risks: string;
+  metrics: string;
+  notes: string;
   expanded: boolean;
   completed: boolean;
+  // AI Context Fields
+  aiContext: string;
+  implementationSteps: string[];
+  codeReferences: string[];
+  testingRequirements: string;
+  relatedFiles: string[];
+  technicalConstraints: string;
+  // Metadata
+  tags: string[];
+  estimatedHours: number | null;
+  version: number;
 }
 
 export interface ScreenNodeData {
   [key: string]: unknown;
   screenName: string;
-  description: string;
-  keyElements: string;
+  purpose: string;
+  keyElements: string[];
+  userActions: string[];
+  states: string[];
+  navigation: string;
+  dataSources: string[];
+  wireframeUrl: string;
+  notes: string;
   expanded: boolean;
   completed: boolean;
+  // AI Context Fields
+  aiContext: string;
+  acceptanceCriteria: string[];
+  componentHierarchy: string[];
+  codeReferences: string[];
+  testingRequirements: string;
+  // Metadata
+  tags: string[];
+  estimatedHours: number | null;
+  version: number;
 }
 
 export interface TechStackNodeData {
@@ -47,6 +91,14 @@ export interface TechStackNodeData {
   notes: string;
   expanded: boolean;
   completed: boolean;
+  // AI Context Fields
+  version: string;
+  rationale: string;
+  configurationNotes: string;
+  integrationWith: string[];
+  // Metadata
+  tags: string[];
+  estimatedHours: number | null;
 }
 
 export interface PromptNodeData {
@@ -56,6 +108,14 @@ export interface PromptNodeData {
   resultNotes: string;
   expanded: boolean;
   completed: boolean;
+  // AI Context Fields
+  promptVersion: string;
+  contextUsed: string[];
+  actualOutput: string;
+  refinements: string[];
+  // Metadata
+  tags: string[];
+  estimatedHours: number | null;
 }
 
 export interface NoteNodeData {
@@ -65,6 +125,9 @@ export interface NoteNodeData {
   colorTag: NoteColorTag;
   expanded: boolean;
   completed: boolean;
+  // Metadata
+  tags: string[];
+  estimatedHours: number | null;
 }
 
 // Union of all data types
@@ -94,4 +157,46 @@ export type SpexlyEdge = Edge;
 export interface HistoryEntry {
   nodes: SpexlyNode[];
   edges: SpexlyEdge[];
+}
+
+// ─── Smart Import Types ─────────────────────────────────
+
+/** Lightweight serializable summary of an existing canvas node */
+export interface ExistingNodeSummary {
+  id: string;
+  type: SpexlyNodeType;
+  name: string;
+  populatedFields: string[];
+}
+
+/** Partial update to apply to an existing node */
+export interface NodeFieldUpdate {
+  nodeId: string;
+  nodeType: SpexlyNodeType;
+  fieldsToFill: Record<string, unknown>;
+}
+
+/** A match between an extracted item and an existing node */
+export interface NodeMatch {
+  extractedName: string;
+  existingNodeId: string;
+  confidence: number;
+}
+
+/** Statistics from a smart import operation */
+export interface SmartImportSummary {
+  nodesUpdated: number;
+  fieldsFilledTotal: number;
+  nodesCreated: number;
+  nodesSkipped: number;
+  matchDetails: NodeMatch[];
+}
+
+/** Full return type from smartImportDocument */
+export interface SmartImportResult {
+  updates: NodeFieldUpdate[];
+  newNodes: SpexlyNode[];
+  newEdges: SpexlyEdge[];
+  summary: SmartImportSummary;
+  mode: 'smart';
 }

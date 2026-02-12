@@ -44,8 +44,30 @@ describe('constants', () => {
     it('feature config has correct default data shape', () => {
       const data = NODE_TYPE_CONFIGS.feature.defaultData
       expect(data).toHaveProperty('featureName', '')
+      expect(data).toHaveProperty('summary', '')
+      expect(data).toHaveProperty('problem', '')
+      expect(data).toHaveProperty('userStory', '')
+      expect(data).toHaveProperty('acceptanceCriteria')
       expect(data).toHaveProperty('priority', 'Must')
       expect(data).toHaveProperty('status', 'Planned')
+      expect(data).toHaveProperty('effort', 'M')
+      expect(data).toHaveProperty('dependencies')
+      expect(data).toHaveProperty('risks', '')
+      expect(data).toHaveProperty('metrics', '')
+      expect(data).toHaveProperty('notes', '')
+    })
+
+    it('screen config has correct default data shape', () => {
+      const data = NODE_TYPE_CONFIGS.screen.defaultData
+      expect(data).toHaveProperty('screenName', '')
+      expect(data).toHaveProperty('purpose', '')
+      expect(data).toHaveProperty('keyElements')
+      expect(data).toHaveProperty('userActions')
+      expect(data).toHaveProperty('states')
+      expect(data).toHaveProperty('navigation', '')
+      expect(data).toHaveProperty('dataSources')
+      expect(data).toHaveProperty('wireframeUrl', '')
+      expect(data).toHaveProperty('notes', '')
     })
 
     it('techStack config has correct default category', () => {

@@ -113,6 +113,19 @@ export const wizardDailyRateLimiter = redis
   : null;
 
 /**
+ * Rate limiter for public waitlist submissions
+ * Limit: 10 submissions per hour per IP
+ */
+export const waitlistRateLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(10, '1 h'),
+      analytics: true,
+      prefix: 'ratelimit:waitlist',
+    })
+  : null;
+
+/**
  * Helper to check rate limit and throw error if exceeded
  * Returns true if allowed, false if rate limited
  */

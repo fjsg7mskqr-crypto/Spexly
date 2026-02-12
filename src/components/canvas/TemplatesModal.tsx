@@ -9,6 +9,7 @@ import {
   deleteUserTemplate,
   type UserTemplate,
 } from '@/app/actions/templates';
+import type { SpexlyNode } from '@/types/nodes';
 
 interface TemplatesModalProps {
   isOpen: boolean;
@@ -70,7 +71,7 @@ export function TemplatesModal({ isOpen, onClose }: TemplatesModalProps) {
     const collapsed = (templateNodes ?? []).map((node) => ({
       ...node,
       data: { ...node.data, expanded: false },
-    }));
+    })) as SpexlyNode[];
     setNodesAndEdges(collapsed, templateEdges ?? []);
     onClose();
   };

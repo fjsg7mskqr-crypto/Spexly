@@ -47,12 +47,12 @@ function NodeWrapperInner({
     const observer = new ResizeObserver(() => update());
     observer.observe(el);
     return () => observer.disconnect();
-  }, [id, setNodeHeight]);
+  }, [id, setNodeHeight, expanded, completed, children]);
 
   return (
     <div
       ref={wrapperRef}
-      className={`node-appear group relative w-[320px] rounded-xl border shadow-lg backdrop-blur-sm transition-all duration-200 hover:shadow-xl ${
+      className={`node-appear group relative w-[320px] min-h-[58px] rounded-xl border shadow-lg backdrop-blur-sm transition-all duration-200 hover:shadow-xl ${
         completed
           ? 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-slate-800/90 to-emerald-500/5 shadow-emerald-900/10'
           : 'border-slate-700/50 bg-slate-800/90 shadow-black/20 hover:border-slate-600/80 hover:shadow-black/30'
@@ -60,6 +60,7 @@ function NodeWrapperInner({
       style={{
         borderLeftWidth: '3px',
         borderLeftColor: completed ? '#34D399' : config.color,
+        minWidth: '320px',
       }}
     >
       <Handle type="target" position={Position.Left} />

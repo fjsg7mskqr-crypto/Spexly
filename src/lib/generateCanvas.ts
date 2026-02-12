@@ -10,6 +10,7 @@ import type {
   TargetTool,
   FeaturePriority,
   FeatureStatus,
+  FeatureEffort,
 } from '@/types/nodes';
 
 export interface GenerateCanvasInput {
@@ -20,10 +21,34 @@ export interface GenerateCanvasInput {
   features: string[];
   screens: string[];
   tool: TargetTool;
-  featuresDetailed?: { featureName: string; description?: string; priority?: FeaturePriority; status?: FeatureStatus }[];
-  screensDetailed?: { screenName: string; description?: string; keyElements?: string }[];
+  featuresDetailed?: {
+    featureName: string;
+    summary?: string;
+    problem?: string;
+    userStory?: string;
+    acceptanceCriteria?: string[];
+    priority?: FeaturePriority;
+    status?: FeatureStatus;
+    effort?: FeatureEffort;
+    dependencies?: string[];
+    risks?: string;
+    metrics?: string;
+    notes?: string;
+  }[];
+  screensDetailed?: {
+    screenName: string;
+    purpose?: string;
+    keyElements?: string[];
+    userActions?: string[];
+    states?: string[];
+    navigation?: string;
+    dataSources?: string[];
+    wireframeUrl?: string;
+    notes?: string;
+  }[];
   techStack?: { category: TechCategory; toolName: string; notes?: string }[];
   prompts?: { text: string; targetTool?: TargetTool }[];
+  skipIdeaNode?: boolean;
 }
 
 export interface GenerateCanvasOutput {
@@ -32,10 +57,11 @@ export interface GenerateCanvasOutput {
 }
 
 const COLUMN_X = [0, 360, 720, 1080, 1440];
-const ROW_SPACING = 10;
+const ROW_SPACING = 250;
 
 const FEATURE_PRIORITIES = new Set<FeaturePriority>(['Must', 'Should', 'Nice']);
 const FEATURE_STATUSES = new Set<FeatureStatus>(['Planned', 'In Progress', 'Built', 'Broken', 'Blocked']);
+const FEATURE_EFFORTS = new Set<FeatureEffort>(['XS', 'S', 'M', 'L', 'XL']);
 
 function normalizePriority(value?: FeaturePriority): FeaturePriority {
   return value && FEATURE_PRIORITIES.has(value) ? value : 'Must';
@@ -43,6 +69,10 @@ function normalizePriority(value?: FeaturePriority): FeaturePriority {
 
 function normalizeStatus(value?: FeatureStatus): FeatureStatus {
   return value && FEATURE_STATUSES.has(value) ? value : 'Planned';
+}
+
+function normalizeEffort(value?: FeatureEffort): FeatureEffort {
+  return value && FEATURE_EFFORTS.has(value) ? value : 'M';
 }
 
 function centerPositions(count: number, columnX: number, totalHeight: number): { x: number; y: number }[] {
@@ -60,7 +90,7 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
   const screens = input.screens.filter((s) => s.length > 0);
   const techStack = (input.techStack ?? []).filter((item) => item.toolName.length > 0);
   const promptPack = (input.prompts ?? []).filter((item) => item.text.length > 0);
-  const promptCount = promptPack.length > 0 ? promptPack.length : 1;
+  const promptCount = promptPack.length;
   const detailedFeatures = (input.featuresDetailed ?? []).filter((item) => item.featureName?.length > 0);
   const detailedScreens = (input.screensDetailed ?? []).filter((item) => item.screenName?.length > 0);
 
@@ -102,10 +132,16 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
       coreProblem: input.coreProblem,
       expanded: false,
       completed: false,
+      projectArchitecture: '',
+      corePatterns: [],
+      constraints: [],
+      tags: [],
+      estimatedHours: null,
+      version: 1,
     } as IdeaNodeData,
   } as SpexlyNode;
 
-  const featureSource = detailedFeatures.length
+  const featureSource: Array<{ featureName: string; [key: string]: any }> = detailedFeatures.length
     ? detailedFeatures
     : features.map((featureName) => ({ featureName }));
 
@@ -115,15 +151,32 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
     position: featurePositions[i],
     data: {
       featureName: item.featureName,
-      description: item.description ?? '',
+      summary: item.summary ?? '',
+      problem: item.problem ?? '',
+      userStory: item.userStory ?? '',
+      acceptanceCriteria: item.acceptanceCriteria ?? [],
       priority: normalizePriority(item.priority),
       status: normalizeStatus(item.status),
+      effort: normalizeEffort(item.effort),
+      dependencies: item.dependencies ?? [],
+      risks: item.risks ?? '',
+      metrics: item.metrics ?? '',
+      notes: item.notes ?? '',
       expanded: false,
       completed: false,
+      aiContext: '',
+      implementationSteps: [],
+      codeReferences: [],
+      testingRequirements: '',
+      relatedFiles: [],
+      technicalConstraints: '',
+      tags: [],
+      estimatedHours: null,
+      version: 1,
     } as FeatureNodeData,
   })) as SpexlyNode[];
 
-  const screenSource = detailedScreens.length
+  const screenSource: Array<{ screenName: string; [key: string]: any }> = detailedScreens.length
     ? detailedScreens
     : screens.map((screenName) => ({ screenName }));
 
@@ -133,10 +186,24 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
     position: screenPositions[i],
     data: {
       screenName: item.screenName,
-      description: item.description ?? '',
-      keyElements: item.keyElements ?? '',
+      purpose: item.purpose ?? '',
+      keyElements: item.keyElements ?? [],
+      userActions: item.userActions ?? [],
+      states: item.states ?? [],
+      navigation: item.navigation ?? '',
+      dataSources: item.dataSources ?? [],
+      wireframeUrl: item.wireframeUrl ?? '',
+      notes: item.notes ?? '',
       expanded: false,
       completed: false,
+      aiContext: '',
+      acceptanceCriteria: [],
+      componentHierarchy: [],
+      codeReferences: [],
+      testingRequirements: '',
+      tags: [],
+      estimatedHours: null,
+      version: 1,
     } as ScreenNodeData,
   })) as SpexlyNode[];
 
@@ -150,40 +217,36 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
       notes: item.notes ?? '',
       expanded: false,
       completed: false,
+      version: '',
+      rationale: '',
+      configurationNotes: '',
+      integrationWith: [],
+      tags: [],
+      estimatedHours: null,
     } as TechStackNodeData,
   })) as SpexlyNode[];
 
-  const promptNodes: SpexlyNode[] =
-    promptPack.length > 0
-      ? promptPack.map((item, i) => ({
-          id: `prompt-${ts}-${i}`,
-          type: 'prompt' as const,
-          position: promptPositions[i],
-          data: {
-            promptText: item.text,
-            targetTool: item.targetTool ?? input.tool,
-            resultNotes: '',
-            expanded: false,
-            completed: false,
-          } as PromptNodeData,
-        }))
-      : [
-          {
-            id: `prompt-${ts}`,
-            type: 'prompt' as const,
-            position: promptPositions[0],
-            data: {
-            promptText: '',
-            targetTool: input.tool,
-            resultNotes: '',
-            expanded: false,
-            completed: false,
-          } as PromptNodeData,
-        },
-        ];
+  const promptNodes: SpexlyNode[] = promptPack.map((item, i) => ({
+    id: `prompt-${ts}-${i}`,
+    type: 'prompt' as const,
+    position: promptPositions[i],
+    data: {
+      promptText: item.text,
+      targetTool: item.targetTool ?? input.tool,
+      resultNotes: '',
+      expanded: false,
+      completed: false,
+      promptVersion: '',
+      contextUsed: [],
+      actualOutput: '',
+      refinements: [],
+      tags: [],
+      estimatedHours: null,
+    } as PromptNodeData,
+  }));
 
   const nodes: SpexlyNode[] = [
-    ideaNode,
+    ...(input.skipIdeaNode ? [] : [ideaNode]),
     ...featureNodes,
     ...screenNodes,
     ...techStackNodes,
@@ -193,13 +256,20 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
   // Generate edges
   const edges: SpexlyEdge[] = [];
 
-  // Idea → each Feature
-  for (const fn of featureNodes) {
-    edges.push({ id: `e-${ideaId}-${fn.id}`, source: ideaId, target: fn.id });
+  if (!input.skipIdeaNode) {
+    // Idea → each Feature
+    for (const fn of featureNodes) {
+      edges.push({ id: `e-${ideaId}-${fn.id}`, source: ideaId, target: fn.id });
+    }
+
+    // Idea → each Tech Stack
+    for (const tsNode of techStackNodes) {
+      edges.push({ id: `e-${ideaId}-${tsNode.id}`, source: ideaId, target: tsNode.id });
+    }
   }
 
   // Feature[i] → Screen[i % screens.length]
-  if (screens.length > 0) {
+  if (screenNodes.length > 0) {
     for (let i = 0; i < featureNodes.length; i++) {
       const screenIdx = i % screenNodes.length;
       edges.push({
@@ -208,11 +278,6 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
         target: screenNodes[screenIdx].id,
       });
     }
-  }
-
-  // Idea → each Tech Stack
-  for (const tsNode of techStackNodes) {
-    edges.push({ id: `e-${ideaId}-${tsNode.id}`, source: ideaId, target: tsNode.id });
   }
 
   // Each Screen → first Prompt

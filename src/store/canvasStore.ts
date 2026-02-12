@@ -17,6 +17,7 @@ import type {
   FeatureNodeData,
   FeatureStatus,
   HistoryEntry,
+  NodeFieldUpdate,
 } from '@/types/nodes';
 import { NODE_TYPE_CONFIGS, MAX_HISTORY } from '@/lib/constants';
 
@@ -63,6 +64,8 @@ interface CanvasState {
   resetLayout: () => void;
   setNodeHeight: (nodeId: string, height: number) => void;
 
+  smartImport: (updates: NodeFieldUpdate[], newNodes: SpexlyNode[], newEdges: SpexlyEdge[]) => void;
+
   // Project lifecycle
   loadProject: (id: string, name: string, nodes: SpexlyNode[], edges: SpexlyEdge[]) => void;
   clearCanvas: () => void;
@@ -73,7 +76,7 @@ interface CanvasState {
 const BASE_VERTICAL_GAP = 0;
 const EXPANDED_VERTICAL_GAP = 220;
 const COLUMN_X = [0, 360, 720, 1080, 1440, 1800];
-const ROW_SPACING = 210;
+const ROW_SPACING = 250;
 const NODE_WIDTH = 320;
 const NODE_GAP = 10;
 
@@ -542,6 +545,61 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     });
   },
 
+  smartImport: (updates, newNodes, newEdges) => {
+    get().pushHistory();
+
+    // 1. Apply field updates to existing nodes
+    let updatedNodes = get().nodes.map((node) => {
+      const update = updates.find((u) => u.nodeId === node.id);
+      if (!update) return node;
+      return { ...node, data: { ...node.data, ...update.fieldsToFill } } as SpexlyNode;
+    });
+
+    // 2. Position new nodes offset to the right of existing canvas
+    let offsetX = 0;
+    let offsetY = 0;
+
+    if (updatedNodes.length > 0) {
+      const xs = updatedNodes.map((n) => n.position.x);
+      const ys = updatedNodes.map((n) => n.position.y);
+      const maxX = Math.max(...xs);
+      const minY = Math.min(...ys);
+      offsetX = maxX + 380;
+      offsetY = minY;
+    }
+
+    const adjustedNewNodes = newNodes.map((node) => ({
+      ...node,
+      position: {
+        x: node.position.x + offsetX,
+        y: node.position.y + offsetY,
+      },
+    })) as SpexlyNode[];
+
+    const spacedNewNodes = autoSpaceNodes(adjustedNewNodes, BASE_VERTICAL_GAP, get().nodeHeights);
+
+    // 3. Auto-connect new feature/techStack nodes to existing idea node
+    const existingIdea = updatedNodes.find((n) => n.type === 'idea');
+    const autoEdges: SpexlyEdge[] = [];
+    if (existingIdea) {
+      for (const node of spacedNewNodes) {
+        if (node.type === 'feature' || node.type === 'techStack') {
+          autoEdges.push({
+            id: `e-${existingIdea.id}-${node.id}`,
+            source: existingIdea.id,
+            target: node.id,
+          });
+        }
+      }
+    }
+
+    set({
+      nodes: [...updatedNodes, ...spacedNewNodes],
+      edges: [...get().edges, ...newEdges, ...autoEdges],
+      expandShiftMap: {},
+    });
+  },
+
   resetLayout: () => {
     get().pushHistory();
     const { baselineNodes, baselineEdges, nodes, edges } = get();
@@ -604,7 +662,8 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
 
   setNodeHeight: (nodeId, height) => {
     const current = get().nodeHeights[nodeId];
-    if (current && Math.abs(current - height) < 6) return;
+    // Prevent unnecessary updates - increase threshold to avoid rapid updates
+    if (current && Math.abs(current - height) < 10) return;
     const nextMap = { ...get().nodeHeights, [nodeId]: height };
     set({ nodeHeights: nextMap });
   },

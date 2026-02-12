@@ -427,9 +427,66 @@ describe('canvasStore', () => {
       // Use setState directly to avoid Date.now() ID collisions
       useCanvasStore.setState({
         nodes: [
-          { id: 'f1', type: 'feature', position: { x: 0, y: 0 }, data: { featureName: 'A', description: '', priority: 'Must', status: 'Planned', expanded: false } },
-          { id: 'f2', type: 'feature', position: { x: 100, y: 0 }, data: { featureName: 'B', description: '', priority: 'Must', status: 'Built', expanded: false } },
-          { id: 'f3', type: 'feature', position: { x: 200, y: 0 }, data: { featureName: 'C', description: '', priority: 'Must', status: 'Built', expanded: false } },
+          {
+            id: 'f1',
+            type: 'feature',
+            position: { x: 0, y: 0 },
+            data: {
+              featureName: 'A',
+              summary: '',
+              problem: '',
+              userStory: '',
+              acceptanceCriteria: [],
+              priority: 'Must',
+              status: 'Planned',
+              effort: 'M',
+              dependencies: [],
+              risks: '',
+              metrics: '',
+              notes: '',
+              expanded: false,
+            },
+          },
+          {
+            id: 'f2',
+            type: 'feature',
+            position: { x: 100, y: 0 },
+            data: {
+              featureName: 'B',
+              summary: '',
+              problem: '',
+              userStory: '',
+              acceptanceCriteria: [],
+              priority: 'Must',
+              status: 'Built',
+              effort: 'M',
+              dependencies: [],
+              risks: '',
+              metrics: '',
+              notes: '',
+              expanded: false,
+            },
+          },
+          {
+            id: 'f3',
+            type: 'feature',
+            position: { x: 200, y: 0 },
+            data: {
+              featureName: 'C',
+              summary: '',
+              problem: '',
+              userStory: '',
+              acceptanceCriteria: [],
+              priority: 'Must',
+              status: 'Built',
+              effort: 'M',
+              dependencies: [],
+              risks: '',
+              metrics: '',
+              notes: '',
+              expanded: false,
+            },
+          },
         ] as SpexlyNode[],
       })
 
@@ -458,7 +515,26 @@ describe('canvasStore', () => {
       store.addNode('idea', { x: 0, y: 0 })
 
       const newNodes: SpexlyNode[] = [
-        { id: 'new-1', type: 'feature', position: { x: 0, y: 0 }, data: { featureName: 'Auth', description: '', priority: 'Must' as const, status: 'Planned' as const, expanded: false } } as SpexlyNode,
+        {
+          id: 'new-1',
+          type: 'feature',
+          position: { x: 0, y: 0 },
+          data: {
+            featureName: 'Auth',
+            summary: '',
+            problem: '',
+            userStory: '',
+            acceptanceCriteria: [],
+            priority: 'Must' as const,
+            status: 'Planned' as const,
+            effort: 'M' as const,
+            dependencies: [],
+            risks: '',
+            metrics: '',
+            notes: '',
+            expanded: false,
+          },
+        } as SpexlyNode,
       ]
       store.setNodesAndEdges(newNodes, [])
 

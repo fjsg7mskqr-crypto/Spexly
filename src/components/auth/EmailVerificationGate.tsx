@@ -9,6 +9,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { checkEmailVerification, resendVerificationEmail, signOut } from '@/lib/supabase/auth-helpers';
 
 interface EmailVerificationGateProps {
@@ -16,14 +17,28 @@ interface EmailVerificationGateProps {
 }
 
 export function EmailVerificationGate({ children }: EmailVerificationGateProps) {
+  const pathname = usePathname();
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
   const [isResending, setIsResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
   const [resendError, setResendError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const verificationTimeoutMs = 5000;
+  const isPublicRoute = pathname === '/'
+    || pathname.startsWith('/waitlist')
+    || pathname.startsWith('/blog')
+    || pathname.startsWith('/privacy')
+    || pathname.startsWith('/terms')
+    || pathname.startsWith('/login')
+    || pathname.startsWith('/signup')
+    || pathname.startsWith('/auth');
 
   useEffect(() => {
+    if (isPublicRoute) {
+      setIsLoading(false);
+      return;
+    }
+
     let isActive = true;
     const timeoutId = window.setTimeout(() => {
       if (!isActive) return;
@@ -53,7 +68,11 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
       isActive = false;
       window.clearTimeout(timeoutId);
     };
-  }, []);
+  }, [isPublicRoute]);
+
+  if (isPublicRoute) {
+    return <>{children}</>;
+  }
 
   async function handleResendEmail() {
     setIsResending(true);

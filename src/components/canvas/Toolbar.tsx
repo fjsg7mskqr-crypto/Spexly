@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { ArrowLeft, BarChart3, Cloud, CloudOff, FileText, LayoutGrid, Loader2, RotateCcw } from 'lucide-react';
 import { useCanvasStore } from '@/store/canvasStore';
 import { AddNodeMenu } from './AddNodeMenu';
+import { ExportMenu } from './ExportMenu';
 
 interface ToolbarProps {
   isDashboardOpen: boolean;
@@ -106,6 +107,7 @@ export function Toolbar({
           <LayoutGrid size={16} />
           Templates
         </button>
+        <ExportMenu />
         <AddNodeMenu />
       </div>
     </div>
