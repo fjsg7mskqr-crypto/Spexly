@@ -134,25 +134,25 @@ function NodeWrapperInner({
       </div>
 
       {/* Action buttons — inside card, top-right of header */}
-      <div className="absolute right-1 top-1 hidden group-hover:flex items-center">
+      <div className="absolute right-7 top-1 hidden group-hover:flex items-center gap-0.5">
         <button
-          className="flex items-center justify-center p-1.5 rounded text-slate-500 hover:text-sky-400 hover:bg-slate-700/50 transition-colors"
+          className="flex items-center justify-center p-2 rounded text-slate-500 hover:text-sky-400 hover:bg-slate-700/50 transition-colors"
           title="Open in sidebar"
           onClick={(e) => {
             e.stopPropagation();
             setSidebarNodeId(id);
           }}
         >
-          <PanelLeftOpen size={13} />
+          <PanelLeftOpen size={16} />
         </button>
         <button
-          className="flex items-center justify-center p-1.5 rounded text-slate-500 hover:text-red-400 hover:bg-slate-700/50 transition-colors"
+          className="flex items-center justify-center p-2 rounded text-slate-500 hover:text-red-400 hover:bg-slate-700/50 transition-colors"
           onClick={(e) => {
             e.stopPropagation();
             deleteNode(id);
           }}
         >
-          <Trash2 size={13} />
+          <Trash2 size={16} />
         </button>
       </div>
 
