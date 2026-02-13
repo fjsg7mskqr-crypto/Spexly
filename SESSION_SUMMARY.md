@@ -463,17 +463,13 @@ Result: Login Feature filled with 5 acceptance criteria ✅
    ```
 3. Test OAuth flow at `/api/integrations/notion/callback`
 
-### 2. Upstash Rate Limiting Disabled
-**Warning:** `Rate limiting is disabled (Upstash not configured)`
+### 2. Upstash Rate Limiting Configured
+**Status:** Configured and connectivity verified on February 13, 2026
 
-**Impact:** None for solo development, needed for production
+**Verification:** Direct Redis set/get check returned `upstash_ping ok`
 
-**To Enable:**
-Add to `.env.local`:
-```bash
-UPSTASH_REDIS_REST_URL=...
-UPSTASH_REDIS_REST_TOKEN=...
-```
+**Remaining Validation Before Launch:**
+- Run app-level rate-limit scenario tests (failed login bursts, rapid save bursts)
 
 ### 3. Turbopack Cache Warnings
 **Warning:** `Persisting failed: Unable to write SST file`
@@ -485,12 +481,10 @@ UPSTASH_REDIS_REST_TOKEN=...
 rm -rf .next .turbo
 ```
 
-### 4. Test Type Errors
-**Status:** 13 test files with TypeScript errors
+### 4. Historical Type Error Note (Resolved)
+**Status:** Resolved on February 13, 2026
 
-**Impact:** Tests pass, runtime unaffected
-
-**Decision:** Left as-is (not blocking, tests work)
+**Current:** `npm run lint`, `npm run type-check`, and `npm run test` all pass
 
 ---
 
@@ -538,7 +532,7 @@ rm -rf .next .turbo
 ### Immediate (Before Production)
 1. [ ] Set up Notion OAuth credentials
 2. [ ] Test Notion import end-to-end
-3. [ ] Set up Upstash for rate limiting
+3. [x] Set up Upstash for rate limiting
 4. [ ] Remove dev upgrade files (`/dev-upgrade/*`, `upgradeToProDEV.ts`)
 5. [ ] Add `.env.example` with all required variables
 6. [ ] Test wizard smart import with real users
@@ -710,3 +704,9 @@ tail -f /tmp/dev-*.log
 *Generated: February 12, 2026*
 *Session ID: d66d21ce-2c5c-44cd-aede-812877aee6db*
 *Handoff Ready: ✅*
+
+---
+
+**Addendum (February 13, 2026):**
+- Upstash configured and verified (`upstash_ping ok`)
+- Local quality gates verified (`lint`, `type-check`, `test`, `build`)

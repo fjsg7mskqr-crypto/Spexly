@@ -2,7 +2,7 @@
 
 **Project:** Spexly
 **Target Platform:** Vercel
-**Last Updated:** February 10, 2026
+**Last Updated:** February 13, 2026
 
 ---
 
@@ -21,8 +21,8 @@
 
 ### ⏳ Pending Configuration (Before Production)
 
-- [ ] Upstash Redis setup (Step 3 - IN PROGRESS)
-- [ ] Email verification gate integration (Step 4)
+- [x] Upstash Redis setup (Step 3 - completed February 13, 2026)
+- [x] Email verification gate integration (Step 4 - completed)
 - [ ] Local testing of all security features (Step 5)
 - [ ] Production environment variables setup (Step 6)
 - [ ] Sentry error tracking integration
@@ -34,8 +34,8 @@
 
 ### Phase 1: Complete Current Security Setup (Est. 30 min)
 
-#### Step 3: Upstash Redis Configuration ⏳
-**Status:** In Progress
+#### Step 3: Upstash Redis Configuration ✅
+**Status:** Completed (February 13, 2026)
 **Priority:** HIGH - Required for rate limiting
 **Time:** 10 minutes
 
@@ -49,6 +49,8 @@
    UPSTASH_REDIS_REST_TOKEN=your-token
    ```
 5. Verify in development: `npm run dev` should start without errors
+6. Verify connectivity:
+   - `upstash_ping ok` via direct Redis set/get test
 
 **Testing:**
 - Try logging in 6 times with wrong password → should rate limit on 6th attempt
@@ -57,7 +59,7 @@
 ---
 
 #### Step 4: Integrate Email Verification Gate
-**Status:** Not Started
+**Status:** Completed
 **Priority:** MEDIUM - Prevents spam accounts
 **Time:** 5 minutes
 
@@ -654,7 +656,7 @@ CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at DESC);
 ### Pre-Launch (Do Before Going Live)
 
 **Code Quality:**
-- [ ] All TypeScript errors resolved (`npm run build`)
+- [x] All TypeScript errors resolved (`npm run build`)
 - [ ] No console.log statements in production code
 - [ ] All TODO comments addressed or documented
 - [ ] Code commented where complex
@@ -820,11 +822,11 @@ CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at DESC);
 ## 📝 Notes
 
 ### Current Implementation Status
-**Last Updated:** February 10, 2026
+**Last Updated:** February 13, 2026
 
 - Security foundation: ✅ Complete
-- Rate limiting: ⏳ In progress (Upstash setup pending)
-- Email verification: ⏳ Code ready, needs integration
+- Rate limiting: ✅ Configured (Upstash REST URL/token set and connectivity verified)
+- Email verification: ✅ Integrated in `src/app/layout.tsx`
 - Error tracking: ❌ Not started
 - CAPTCHA: ❌ Not started
 - Production deployment: ❌ Not started
@@ -857,7 +859,7 @@ cat .env.local
 # 4. Start development server
 npm run dev
 
-# 5. Open checklist and continue from Step 3 (Upstash setup)
+# 5. Open checklist and continue from Step 5 (local security testing)
 ```
 
 ---
