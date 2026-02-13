@@ -1,5 +1,4 @@
 import { BaseIntegration, type IntegrationAuth } from './base';
-import type { SupabaseClient } from '@supabase/supabase-js';
 
 export interface LinearTeam {
   id: string;
@@ -25,6 +24,15 @@ export interface FeatureExportInput {
   acceptanceCriteria: string[];
   priority: string;
   effort: string;
+}
+
+interface GraphQLError {
+  message: string;
+}
+
+interface GraphQLResponse<TData> {
+  data?: TData;
+  errors?: GraphQLError[];
 }
 
 /**
@@ -64,7 +72,7 @@ export class LinearIntegration extends BaseIntegration {
       }
     `;
 
-    const data = await this.graphqlRequest(query);
+    const data = await this.graphqlRequest<{ teams: { nodes: LinearTeam[] } }>(query);
     return data.teams.nodes;
   }
 
@@ -102,7 +110,9 @@ export class LinearIntegration extends BaseIntegration {
       },
     };
 
-    const data = await this.graphqlRequest(mutation, variables);
+    const data = await this.graphqlRequest<{
+      issueCreate: { success: boolean; issue: LinearIssue };
+    }>(mutation, variables);
 
     if (!data.issueCreate.success) {
       throw new Error('Failed to create Linear issue');
@@ -130,7 +140,7 @@ export class LinearIntegration extends BaseIntegration {
       }
     `;
 
-    const data = await this.graphqlRequest(query, { id: issueId });
+    const data = await this.graphqlRequest<{ issue: LinearIssue }>(query, { id: issueId });
     return data.issue;
   }
 
@@ -153,14 +163,17 @@ export class LinearIntegration extends BaseIntegration {
       },
     };
 
-    const data = await this.graphqlRequest(mutation, variables);
+    const data = await this.graphqlRequest<{ issueUpdate: { success: boolean } }>(mutation, variables);
     return data.issueUpdate.success;
   }
 
   /**
    * Makes a GraphQL request to Linear API.
    */
-  private async graphqlRequest(query: string, variables?: Record<string, any>): Promise<any> {
+  private async graphqlRequest<TData>(
+    query: string,
+    variables?: Record<string, unknown>
+  ): Promise<TData> {
     const response = await this.fetchWithAuth(this.apiUrl, {
       method: 'POST',
       headers: {
@@ -173,10 +186,14 @@ export class LinearIntegration extends BaseIntegration {
       throw new Error(`Linear API request failed: ${response.statusText}`);
     }
 
-    const result = await response.json();
+    const result = (await response.json()) as GraphQLResponse<TData>;
 
-    if (result.errors) {
+    if (result.errors?.length) {
       throw new Error(`Linear GraphQL error: ${result.errors[0].message}`);
+    }
+
+    if (!result.data) {
+      throw new Error('Linear GraphQL response missing data');
     }
 
     return result.data;

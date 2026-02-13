@@ -6,9 +6,13 @@ import { AuthenticationError, logError } from '@/lib/errors';
 
 // pdf-parse is CommonJS, use dynamic import
 const parsePdf = async (buffer: Buffer) => {
-  const pdfParse = await import('pdf-parse');
-  // CommonJS modules are wrapped, call the imported module directly
-  return (pdfParse as any)(buffer);
+  type PdfParseResult = { text: string };
+  type PdfParseFn = (dataBuffer: Buffer) => Promise<PdfParseResult>;
+
+  const pdfParseModule = await import('pdf-parse');
+  const parser = pdfParseModule as unknown as PdfParseFn;
+
+  return parser(buffer);
 };
 
 /**

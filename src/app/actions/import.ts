@@ -61,7 +61,7 @@ function isFallbackEnabled(): boolean {
   return process.env.AI_IMPORT_FALLBACK_ENABLED === 'true';
 }
 
-function useClaudeForImport(): boolean {
+function shouldUseClaudeForImport(): boolean {
   return process.env.AI_USE_CLAUDE_FOR_IMPORT === 'true';
 }
 
@@ -504,7 +504,7 @@ export async function importDocumentWithAI(
     if (finalFeatures.length > 0 || screens.length > 0) {
       try {
         // Use Claude API if enabled (better structured output, prompt caching)
-        if (useClaudeForImport() && process.env.ANTHROPIC_API_KEY) {
+        if (shouldUseClaudeForImport() && process.env.ANTHROPIC_API_KEY) {
           const claude = new ClaudeAI(process.env.ANTHROPIC_API_KEY);
           const detailed = await claude.extractDetailedFields(finalFeatures, screens, text);
           featuresDetailed = detailed.features;
@@ -842,7 +842,7 @@ export async function smartImportDocument(
 
     if (allFeatureNames.length > 0 || allScreenNames.length > 0) {
       try {
-        if (useClaudeForImport() && process.env.ANTHROPIC_API_KEY) {
+        if (shouldUseClaudeForImport() && process.env.ANTHROPIC_API_KEY) {
           const claude = new ClaudeAI(process.env.ANTHROPIC_API_KEY);
           const detailed = await claude.extractDetailedFields(allFeatureNames, allScreenNames, text);
           featuresDetailed = detailed.features;

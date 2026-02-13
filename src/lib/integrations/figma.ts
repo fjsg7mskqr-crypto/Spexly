@@ -1,5 +1,11 @@
 import { BaseIntegration, type IntegrationAuth } from './base';
-import type { SupabaseClient } from '@supabase/supabase-js';
+
+interface FigmaNode {
+  id?: string;
+  name?: string;
+  type?: string;
+  children?: FigmaNode[];
+}
 
 export interface FigmaFile {
   key: string;
@@ -12,7 +18,7 @@ export interface FigmaFrame {
   id: string;
   name: string;
   type: 'FRAME';
-  children?: FigmaFrame[];
+  children?: FigmaNode[];
 }
 
 export interface FigmaImportResult {
@@ -95,7 +101,7 @@ export class FigmaIntegration extends BaseIntegration {
     const fileData = await response.json();
 
     // Extract frames from document
-    const frames = this.extractFrames(fileData.document);
+    const frames = this.extractFrames(fileData.document as FigmaNode);
 
     // Convert frames to Screen specifications
     const screens = frames.map((frame) => ({
@@ -112,11 +118,16 @@ export class FigmaIntegration extends BaseIntegration {
   /**
    * Recursively extracts all frames from Figma document structure.
    */
-  private extractFrames(node: any): FigmaFrame[] {
+  private extractFrames(node: FigmaNode): FigmaFrame[] {
     const frames: FigmaFrame[] = [];
 
-    if (node.type === 'FRAME') {
-      frames.push(node);
+    if (node.type === 'FRAME' && typeof node.id === 'string') {
+      frames.push({
+        id: node.id,
+        name: typeof node.name === 'string' ? node.name : 'Untitled Frame',
+        type: 'FRAME',
+        children: node.children,
+      });
     }
 
     if (node.children) {
@@ -148,7 +159,7 @@ export class FigmaIntegration extends BaseIntegration {
   /**
    * Infers UI element type from Figma node properties.
    */
-  private inferElementType(node: any): string {
+  private inferElementType(node: FigmaNode): string {
     const name = (node.name || '').toLowerCase();
 
     if (name.includes('button') || name.includes('btn')) return 'Button';

@@ -57,6 +57,13 @@ export interface GenerateCanvasOutput {
   edges: SpexlyEdge[];
 }
 
+type DetailedFeatureInput = NonNullable<GenerateCanvasInput['featuresDetailed']>[number];
+type DetailedScreenInput = NonNullable<GenerateCanvasInput['screensDetailed']>[number];
+type FeatureSourceItem = DetailedFeatureInput & {
+  implementationSteps?: string[];
+  technicalConstraints?: string;
+};
+
 const COLUMN_X = [0, 360, 720, 1080, 1440];
 const ROW_SPACING = 250;
 
@@ -142,7 +149,7 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
     } as IdeaNodeData,
   } as SpexlyNode;
 
-  const featureSource: Array<{ featureName: string; [key: string]: any }> = detailedFeatures.length
+  const featureSource: FeatureSourceItem[] = detailedFeatures.length
     ? detailedFeatures
     : features.map((featureName) => ({ featureName }));
 
@@ -177,7 +184,7 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
     } as FeatureNodeData,
   })) as SpexlyNode[];
 
-  const screenSource: Array<{ screenName: string; [key: string]: any }> = detailedScreens.length
+  const screenSource: DetailedScreenInput[] = detailedScreens.length
     ? detailedScreens
     : screens.map((screenName) => ({ screenName }));
 
@@ -237,18 +244,18 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
   };
   const featureContext = featureSource.map((f) => ({
     featureName: f.featureName,
-    summary: (f.summary as string) ?? '',
-    userStory: (f.userStory as string) ?? undefined,
-    acceptanceCriteria: (f.acceptanceCriteria as string[]) ?? undefined,
-    implementationSteps: (f.implementationSteps as string[]) ?? undefined,
-    dependencies: (f.dependencies as string[]) ?? undefined,
-    technicalConstraints: (f.technicalConstraints as string) ?? undefined,
+    summary: f.summary ?? '',
+    userStory: f.userStory,
+    acceptanceCriteria: f.acceptanceCriteria,
+    implementationSteps: f.implementationSteps,
+    dependencies: f.dependencies,
+    technicalConstraints: f.technicalConstraints,
   }));
   const screenContext = screenSource.map((s) => ({
     screenName: s.screenName,
-    purpose: (s.purpose as string) ?? '',
-    keyElements: (s.keyElements as string[]) ?? undefined,
-    states: (s.states as string[]) ?? undefined,
+    purpose: s.purpose ?? '',
+    keyElements: s.keyElements,
+    states: s.states,
   }));
   const techContext = techStack.map((t) => ({
     category: t.category,

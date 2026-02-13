@@ -13,7 +13,6 @@ import {
   AuthenticationError,
   DatabaseError,
   ValidationError,
-  NotFoundError,
   RateLimitError,
   logError,
 } from '@/lib/errors';
@@ -81,7 +80,7 @@ async function getAuthUserId(): Promise<string> {
   return user.id;
 }
 
-async function getUserTier(_userId: string): Promise<'free' | 'pro'> {
+async function getUserTier(): Promise<'free' | 'pro'> {
   // TODO: Re-enable tier checks once profiles table is created in Supabase
   // and a payment system is integrated. For now, all users get pro access.
   return 'pro';
@@ -166,7 +165,7 @@ export async function createProject(name?: string): Promise<Project> {
     }
 
     // Check tier limits (free tier: 3 projects max)
-    const tier = await getUserTier(userId);
+    const tier = await getUserTier();
     if (tier === 'free') {
       const supabase = await createClient();
       const { count, error: countError } = await supabase
@@ -238,7 +237,7 @@ export async function createProjectFromWizard(
     }
 
     // Check tier limits
-    const tier = await getUserTier(userId);
+    const tier = await getUserTier();
 
     // Free tier: 3 projects max
     if (tier === 'free') {
@@ -328,7 +327,7 @@ export async function updateCanvasData(
     }
 
     // Check tier limits (free tier: 30 nodes max)
-    const tier = await getUserTier(userId);
+    const tier = await getUserTier();
     if (tier === 'free' && nodes.length > 30) {
       throw new ValidationError(
         'Free tier limited to 30 nodes per project. Upgrade to Pro for unlimited nodes.'

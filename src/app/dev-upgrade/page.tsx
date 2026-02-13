@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { upgradeCurrentUserToPro } from '@/app/actions/upgradeToProDEV';
 
 export default function DevUpgradePage() {
-  const [result, setResult] = useState<any>(null);
+  type UpgradeResult = Awaited<ReturnType<typeof upgradeCurrentUserToPro>> | { success: false; error: string };
+  const [result, setResult] = useState<UpgradeResult | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleUpgrade() {
@@ -52,9 +53,9 @@ export default function DevUpgradePage() {
               {result.success ? '✅ Success!' : '❌ Error'}
             </p>
             <p className="mt-2 text-sm">
-              {result.message || result.error}
+              {'message' in result ? result.message : result.error}
             </p>
-            {result.userId && (
+            {'userId' in result && result.userId && (
               <p className="mt-2 text-xs opacity-70">
                 User ID: {result.userId}
               </p>

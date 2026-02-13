@@ -37,17 +37,7 @@ function safeParseJson(payload: string): Record<string, unknown> {
   return JSON.parse(cleaned);
 }
 
-function buildExtractionPrompt(
-  features: string[],
-  screens: string[],
-  prdText: string
-): string {
-  // Claude has 200K context but we'll be reasonable
-  const maxPrdLength = 50000;
-  const truncatedPrd = prdText.length > maxPrdLength
-    ? prdText.slice(0, maxPrdLength) + '\n\n[... document truncated for length ...]'
-    : prdText;
-
+function buildExtractionPrompt(features: string[], screens: string[]): string {
   return [
     features.length > 0 ? `FEATURES TO DETAIL: ${features.join(', ')}` : null,
     screens.length > 0 ? `SCREENS TO DETAIL: ${screens.join(', ')}` : null,
@@ -146,7 +136,7 @@ export class ClaudeAI {
       return { features: [], screens: [] };
     }
 
-    const extractionPrompt = buildExtractionPrompt(features, screens, prdText);
+    const extractionPrompt = buildExtractionPrompt(features, screens);
 
     const response = await this.client.messages.create({
       model: 'claude-3-5-sonnet-20241022',

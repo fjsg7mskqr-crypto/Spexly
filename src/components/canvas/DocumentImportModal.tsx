@@ -59,6 +59,7 @@ export function DocumentImportModal({ isOpen, onClose }: DocumentImportModalProp
   if (!isOpen) return null;
 
   const handleFileOrNotionImport = async (content: string, fileName: string) => {
+    void fileName;
     setError(null);
     setStatus(null);
     setText(content);

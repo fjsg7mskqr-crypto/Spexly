@@ -146,6 +146,7 @@ export function generateCursorPlanPrompt(node: SpexlyNode, allNodes: SpexlyNode[
 
   const data = node.data;
   const sections: string[] = [];
+  const relatedNodeCount = allNodes.length;
 
   sections.push(`# Implementation Plan: ${data.featureName}`);
   sections.push('');
@@ -155,6 +156,11 @@ export function generateCursorPlanPrompt(node: SpexlyNode, allNodes: SpexlyNode[
   sections.push('');
   if (data.summary) {
     sections.push(data.summary);
+    sections.push('');
+  }
+
+  if (relatedNodeCount > 0) {
+    sections.push(`Project context: ${relatedNodeCount} node(s) in the current canvas.`);
     sections.push('');
   }
 
