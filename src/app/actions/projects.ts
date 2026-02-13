@@ -81,20 +81,10 @@ async function getAuthUserId(): Promise<string> {
   return user.id;
 }
 
-async function getUserTier(userId: string): Promise<'free' | 'pro'> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('tier')
-    .eq('id', userId)
-    .single();
-
-  if (error || !data) {
-    // Default to free tier if profile doesn't exist yet
-    return 'free';
-  }
-
-  return data.tier as 'free' | 'pro';
+async function getUserTier(_userId: string): Promise<'free' | 'pro'> {
+  // TODO: Re-enable tier checks once profiles table is created in Supabase
+  // and a payment system is integrated. For now, all users get pro access.
+  return 'pro';
 }
 
 export async function getProjects(): Promise<Project[]> {

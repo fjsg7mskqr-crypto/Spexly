@@ -10,6 +10,7 @@ import { extractDetailedFields } from '@/lib/import/aiDetailExtractor';
 import { matchExtractedToExisting } from '@/lib/import/fuzzyMatcher';
 import { buildFieldUpdate } from '@/lib/import/mergeStrategy';
 import { ClaudeAI } from '@/lib/ai/claude';
+import { batchEnhanceFeatures, batchEnhanceScreens } from './batchEnhanceNodes';
 import {
   FEATURE_TEMPLATES,
   GENERIC_FEATURES,
@@ -396,6 +397,13 @@ export async function importDocumentWithAI(
       '- Categorize as: Frontend, Backend, Database, Auth, Hosting, or Other',
       '- If document mentions "web app" with no stack, infer common stack (React, Node, PostgreSQL)',
       '',
+      'PROMPTS:',
+      '- Generate 3-5 actionable coding prompts that cover the full build of this project',
+      '- Each prompt should be 2-4 sentences describing WHAT to build, WHICH components/data are involved, and HOW it connects to other parts',
+      '- Order prompts in logical build sequence (data layer first, then core features, then UI polish)',
+      '- BAD prompt: "Generate the core data models"',
+      '- GOOD prompt: "Set up the database schema and tables for users, teams, and subscriptions. Include row-level security policies for team-scoped access. Create TypeScript types matching each table and a seed script for development data."',
+      '',
       'JSON SCHEMA:',
       '{',
       '  "appName": string,',
@@ -405,11 +413,12 @@ export async function importDocumentWithAI(
       '  "features": string[] (feature names, min 3-5),',
       '  "screens": string[] (screen/page names),',
       '  "techStack": [{"category":"Frontend|Backend|Database|Auth|Hosting|Other","toolName": string, "notes": string}],',
-      '  "prompts": [{"text": string, "targetTool":"Claude|Bolt|Cursor|Lovable|Replit|Other"}],',
+      '  "prompts": [{"text": string (2-4 sentence description, NOT a one-liner), "targetTool":"Claude|Bolt|Cursor|Lovable|Replit|Other"}],',
       '  "notes": string[] (any additional context)',
       '}',
       '',
       'CRITICAL: Be AGGRESSIVE about inferring features and tech stack. Extract everything mentioned.',
+      'CRITICAL: Each prompt text MUST be 2-4 sentences, specific and actionable — never a single sentence.',
       'Return ONLY valid JSON, no markdown or explanatory text.',
       '',
       '=== DOCUMENT ===',
@@ -567,6 +576,71 @@ export async function importDocumentWithAI(
         source: noteNode.id,
         target: ideaNode.id,
       });
+    }
+
+    // Auto-enhance Feature and Screen nodes with AI context (if enabled)
+    // DISABLED BY DEFAULT - Users can manually click "Generate with AI" on each node
+    const autoEnhance = process.env.AI_AUTO_ENHANCE_ON_IMPORT === 'true'; // Disabled by default
+    if (autoEnhance && (featuresDetailed || screensDetailed)) {
+      try {
+        const featureNodes = nodes.filter((n) => n.type === 'feature');
+        const screenNodes = nodes.filter((n) => n.type === 'screen');
+
+        // Only enhance if we have a reasonable number of nodes (prevent API overload)
+        const maxNodesToEnhance = 10;
+        const shouldEnhanceFeatures = featureNodes.length > 0 && featureNodes.length <= maxNodesToEnhance && featuresDetailed;
+        const shouldEnhanceScreens = screenNodes.length > 0 && screenNodes.length <= maxNodesToEnhance && screensDetailed;
+
+        // Batch enhance features
+        if (shouldEnhanceFeatures && featuresDetailed) {
+          const featureEnhancements = await batchEnhanceFeatures(
+            featuresDetailed.map((f) => ({
+              featureName: f.featureName,
+              summary: f.summary,
+              problem: f.problem,
+              userStory: f.userStory,
+              acceptanceCriteria: f.acceptanceCriteria,
+              technicalConstraints: '',
+            }))
+          );
+
+          // Apply enhancements to nodes
+          featureEnhancements.forEach((enhancement, idx) => {
+            if (enhancement.success && enhancement.data && featureNodes[idx]) {
+              featureNodes[idx].data = {
+                ...featureNodes[idx].data,
+                ...enhancement.data,
+              };
+            }
+          });
+        }
+
+        // Batch enhance screens
+        if (shouldEnhanceScreens && screensDetailed) {
+          const screenEnhancements = await batchEnhanceScreens(
+            screensDetailed.map((s) => ({
+              screenName: s.screenName,
+              purpose: s.purpose,
+              keyElements: s.keyElements,
+              userActions: s.userActions,
+              states: s.states,
+            }))
+          );
+
+          // Apply enhancements to nodes
+          screenEnhancements.forEach((enhancement, idx) => {
+            if (enhancement.success && enhancement.data && screenNodes[idx]) {
+              screenNodes[idx].data = {
+                ...screenNodes[idx].data,
+                ...enhancement.data,
+              };
+            }
+          });
+        }
+      } catch (enhanceError) {
+        // Log but don't fail import if enhancement fails
+        logError(enhanceError, { action: 'importDocumentWithAI:autoEnhance' });
+      }
     }
 
     await incrementDailyUsageCount(supabase, userId);

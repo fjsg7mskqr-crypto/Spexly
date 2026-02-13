@@ -567,6 +567,197 @@ describe('canvasStore', () => {
     })
   })
 
+  // ─── toggleNodeCompleted ────────────────────────────────
+
+  describe('toggleNodeCompleted', () => {
+    it('toggles the completed state', () => {
+      const store = useCanvasStore.getState()
+      store.addNode('feature', { x: 0, y: 0 })
+      const nodeId = useCanvasStore.getState().nodes[0].id
+
+      expect(useCanvasStore.getState().nodes[0].data.completed).toBeFalsy()
+
+      store.toggleNodeCompleted(nodeId)
+      expect(useCanvasStore.getState().nodes[0].data.completed).toBe(true)
+
+      store.toggleNodeCompleted(nodeId)
+      expect(useCanvasStore.getState().nodes[0].data.completed).toBe(false)
+    })
+
+    it('pushes history before toggling', () => {
+      const store = useCanvasStore.getState()
+      store.addNode('feature', { x: 0, y: 0 })
+      const pastBefore = useCanvasStore.getState().past.length
+      const nodeId = useCanvasStore.getState().nodes[0].id
+
+      store.toggleNodeCompleted(nodeId)
+      expect(useCanvasStore.getState().past.length).toBeGreaterThan(pastBefore)
+    })
+
+    it('only affects the target node', () => {
+      const store = useCanvasStore.getState()
+      store.addNode('feature', { x: 0, y: 0 })
+      store.addNode('note', { x: 100, y: 100 })
+
+      const [node1] = useCanvasStore.getState().nodes
+      store.toggleNodeCompleted(node1.id)
+
+      const nodes = useCanvasStore.getState().nodes
+      expect(nodes[0].data.completed).toBe(true)
+      expect(nodes[1].data.completed).toBeFalsy()
+    })
+  })
+
+  // ─── appendNodesAndEdges ───────────────────────────────
+
+  describe('appendNodesAndEdges', () => {
+    it('appends nodes and edges to existing state', () => {
+      const store = useCanvasStore.getState()
+      store.addNode('idea', { x: 0, y: 0 })
+
+      const newNodes: SpexlyNode[] = [
+        {
+          id: 'appended-1',
+          type: 'feature',
+          position: { x: 0, y: 0 },
+          data: {
+            featureName: 'New',
+            summary: '',
+            problem: '',
+            userStory: '',
+            acceptanceCriteria: [],
+            priority: 'Must' as const,
+            status: 'Planned' as const,
+            effort: 'M' as const,
+            dependencies: [],
+            risks: '',
+            metrics: '',
+            notes: '',
+            expanded: false,
+          },
+        } as SpexlyNode,
+      ]
+
+      store.appendNodesAndEdges(newNodes, [])
+
+      const state = useCanvasStore.getState()
+      expect(state.nodes.length).toBe(2)
+    })
+
+    it('offsets appended node positions when canvas is not empty', () => {
+      const store = useCanvasStore.getState()
+      store.addNode('idea', { x: 100, y: 50 })
+
+      const newNodes: SpexlyNode[] = [
+        {
+          id: 'appended-1',
+          type: 'note',
+          position: { x: 0, y: 0 },
+          data: {
+            title: 'Test',
+            body: '',
+            colorTag: 'Slate',
+            expanded: false,
+          },
+        } as SpexlyNode,
+      ]
+
+      store.appendNodesAndEdges(newNodes, [])
+
+      const state = useCanvasStore.getState()
+      const appendedNode = state.nodes.find((n) => n.id === 'appended-1')!
+      // Position should be offset from the existing nodes
+      expect(appendedNode.position.x).toBeGreaterThan(0)
+    })
+
+    it('pushes history before appending', () => {
+      const store = useCanvasStore.getState()
+      store.addNode('idea', { x: 0, y: 0 })
+      const pastBefore = useCanvasStore.getState().past.length
+
+      store.appendNodesAndEdges([], [])
+      expect(useCanvasStore.getState().past.length).toBeGreaterThan(pastBefore)
+    })
+
+    it('appends edges as well', () => {
+      const store = useCanvasStore.getState()
+      const newNodes: SpexlyNode[] = [
+        { id: 'a', type: 'idea', position: { x: 0, y: 0 }, data: { appName: '', description: '', targetUser: '', coreProblem: '', expanded: false } } as SpexlyNode,
+        { id: 'b', type: 'feature', position: { x: 100, y: 0 }, data: { featureName: '', expanded: false } } as SpexlyNode,
+      ]
+      const newEdges = [{ id: 'e-ab', source: 'a', target: 'b' }]
+
+      store.appendNodesAndEdges(newNodes, newEdges)
+
+      const state = useCanvasStore.getState()
+      expect(state.edges).toHaveLength(1)
+      expect(state.edges[0].id).toBe('e-ab')
+    })
+  })
+
+  // ─── loadProject ───────────────────────────────────────
+
+  describe('loadProject', () => {
+    it('sets project fields and nodes/edges', () => {
+      const store = useCanvasStore.getState()
+      const nodes: SpexlyNode[] = [
+        { id: 'n1', type: 'idea', position: { x: 0, y: 0 }, data: { appName: 'Loaded', expanded: false } } as SpexlyNode,
+      ]
+      const edges = [{ id: 'e1', source: 'n1', target: 'n1' }]
+
+      store.loadProject('proj-123', 'My Project', nodes, edges)
+
+      const state = useCanvasStore.getState()
+      expect(state.projectId).toBe('proj-123')
+      expect(state.projectName).toBe('My Project')
+      expect(state.nodes).toHaveLength(1)
+      expect(state.edges).toHaveLength(1)
+    })
+
+    it('clears history on load', () => {
+      const store = useCanvasStore.getState()
+      store.addNode('idea', { x: 0, y: 0 })
+      store.addNode('feature', { x: 100, y: 100 })
+      // Should have history entries
+      expect(useCanvasStore.getState().past.length).toBeGreaterThan(0)
+
+      store.loadProject('proj-1', 'Test', [], [])
+
+      const state = useCanvasStore.getState()
+      expect(state.past).toHaveLength(0)
+      expect(state.future).toHaveLength(0)
+    })
+  })
+
+  // ─── clearCanvas ───────────────────────────────────────
+
+  describe('clearCanvas', () => {
+    it('resets all state to defaults', () => {
+      const store = useCanvasStore.getState()
+      store.addNode('idea', { x: 0, y: 0 })
+      store.addNode('feature', { x: 100, y: 100 })
+      useCanvasStore.setState({ projectId: 'proj-1', projectName: 'Test' })
+
+      store.clearCanvas()
+
+      const state = useCanvasStore.getState()
+      expect(state.projectId).toBeNull()
+      expect(state.projectName).toBe('')
+      expect(state.nodes).toHaveLength(0)
+      expect(state.edges).toHaveLength(0)
+      expect(state.past).toHaveLength(0)
+      expect(state.future).toHaveLength(0)
+    })
+
+    it('clears sidebarNodeId', () => {
+      useCanvasStore.setState({ sidebarNodeId: 'some-node' })
+
+      useCanvasStore.getState().clearCanvas()
+
+      expect(useCanvasStore.getState().sidebarNodeId).toBeNull()
+    })
+  })
+
   // ─── getProjectSummary ──────────────────────────────────
 
   describe('getProjectSummary', () => {

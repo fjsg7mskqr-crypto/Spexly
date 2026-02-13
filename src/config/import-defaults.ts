@@ -36,11 +36,13 @@ export const FEATURE_TEMPLATES: FeatureTemplate[] = [
 
 /**
  * Generic features used when no specific features are detected.
+ * Optimized for typical web app needs.
  */
 export const GENERIC_FEATURES = [
-  'Core Functionality',
-  'User Interface',
-  'Data Management',
+  'User Authentication & Authorization',
+  'Dashboard / Home Screen',
+  'Data Management & CRUD Operations',
+  'User Profile & Settings',
 ];
 
 // ========================================
@@ -125,17 +127,21 @@ export const TECH_TEMPLATES: TechTemplate[] = [
 
 /**
  * Default tech stack used when NO technologies are detected.
- * Customize this to your preferred starter stack.
+ * Optimized for solo developers building modern web apps.
+ *
+ * Current preset: Next.js + Supabase + Vercel (Full-Stack Starter)
  */
 export const DEFAULT_TECH_STACK: Array<{
   category: TechCategory;
   toolName: string;
   notes: string;
 }> = [
-  { category: 'Frontend', toolName: 'React', notes: 'UI framework (assumed)' },
-  { category: 'Backend', toolName: 'Node.js', notes: 'Runtime (assumed)' },
-  { category: 'Database', toolName: 'PostgreSQL', notes: 'Database (assumed)' },
-  { category: 'Hosting', toolName: 'Vercel', notes: 'Deployment (assumed)' },
+  { category: 'Frontend', toolName: 'Next.js 15', notes: 'React framework with App Router (recommended for new projects)' },
+  { category: 'Frontend', toolName: 'TypeScript', notes: 'Type-safe development (highly recommended)' },
+  { category: 'Frontend', toolName: 'Tailwind CSS', notes: 'Utility-first CSS framework' },
+  { category: 'Database', toolName: 'Supabase', notes: 'PostgreSQL + Auth + Storage + Realtime (all-in-one backend)' },
+  { category: 'Auth', toolName: 'Supabase Auth', notes: 'Built-in authentication with social providers' },
+  { category: 'Hosting', toolName: 'Vercel', notes: 'Zero-config Next.js deployment' },
 ];
 
 // ========================================

@@ -64,7 +64,7 @@ export function Toolbar({
           className="flex items-center gap-1.5 text-sm text-slate-400 transition-colors hover:text-white"
         >
           <ArrowLeft size={14} />
-          <Image src="/spexly-logo-white.png" alt="Spexly" width={1349} height={603} className="h-10 w-auto" />
+          <Image src="/spexly-logo-white.png" alt="Spexly" width={1349} height={603} className="h-10 w-auto" priority />
         </Link>
         {projectName && (
           <>

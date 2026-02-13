@@ -8,6 +8,8 @@ import { updateCanvasData } from '@/app/actions/projects';
 import { getPopulatedFields } from '@/lib/import/mergeStrategy';
 import type { SpexlyNode } from '@/types/nodes';
 import type { ExistingNodeSummary } from '@/types/nodes';
+import { FileUpload } from '@/components/import/FileUpload';
+import { NotionImport } from '@/components/import/NotionImport';
 
 interface DocumentImportModalProps {
   isOpen: boolean;
@@ -36,10 +38,13 @@ function buildExistingNodeSummaries(nodes: SpexlyNode[]): ExistingNodeSummary[] 
     }));
 }
 
+type ImportTab = 'paste' | 'file' | 'notion';
+
 export function DocumentImportModal({ isOpen, onClose }: DocumentImportModalProps) {
   const appendNodesAndEdges = useCanvasStore((s) => s.appendNodesAndEdges);
   const smartImport = useCanvasStore((s) => s.smartImport);
   const nodes = useCanvasStore((s) => s.nodes);
+  const [activeTab, setActiveTab] = useState<ImportTab>('paste');
   const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<{ type: 'success' | 'fallback' | 'smart'; message: string } | null>(null);
@@ -53,9 +58,18 @@ export function DocumentImportModal({ isOpen, onClose }: DocumentImportModalProp
 
   if (!isOpen) return null;
 
-  const handleImport = async () => {
+  const handleFileOrNotionImport = async (content: string, fileName: string) => {
     setError(null);
-    const trimmed = text.trim();
+    setStatus(null);
+    setText(content);
+    setActiveTab('paste');
+    // Auto-trigger import after setting text
+    setTimeout(() => handleImport(content), 100);
+  };
+
+  const handleImport = async (customText?: string) => {
+    setError(null);
+    const trimmed = (customText || text).trim();
     if (!trimmed) {
       setError('Paste a document or notes to import.');
       return;
@@ -144,17 +158,64 @@ export function DocumentImportModal({ isOpen, onClose }: DocumentImportModalProp
         </div>
 
         <div className="px-6 pb-6 pt-4">
-          <p className="text-sm text-slate-300">
-          Paste a PRD, brief, or markdown. Headings like &quot;Features&quot;, &quot;Screens&quot;, and &quot;Tech Stack&quot; work best.
-          </p>
+          {/* Tabs */}
+          <div className="flex gap-2 border-b border-white/10 mb-4">
+            <button
+              onClick={() => setActiveTab('paste')}
+              className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+                activeTab === 'paste'
+                  ? 'border-violet-500 text-violet-400'
+                  : 'border-transparent text-slate-400 hover:text-slate-300'
+              }`}
+            >
+              Paste Text
+            </button>
+            <button
+              onClick={() => setActiveTab('file')}
+              className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+                activeTab === 'file'
+                  ? 'border-violet-500 text-violet-400'
+                  : 'border-transparent text-slate-400 hover:text-slate-300'
+              }`}
+            >
+              Upload File
+            </button>
+            <button
+              onClick={() => setActiveTab('notion')}
+              className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+                activeTab === 'notion'
+                  ? 'border-violet-500 text-violet-400'
+                  : 'border-transparent text-slate-400 hover:text-slate-300'
+              }`}
+            >
+              Notion
+            </button>
+          </div>
 
-          <textarea
-            value={text}
-            onChange={(event) => setText(event.target.value)}
-            placeholder="Paste your document here..."
-            rows={10}
-            className="mt-4 w-full rounded-xl border border-white/10 bg-slate-950 p-4 text-sm text-slate-100 placeholder:text-slate-500 focus:border-violet-400 focus:outline-none"
-          />
+          {/* Tab Content */}
+          {activeTab === 'paste' && (
+            <>
+              <p className="text-sm text-slate-300">
+                Paste a PRD, brief, or markdown. Headings like &quot;Features&quot;, &quot;Screens&quot;, and &quot;Tech Stack&quot; work best.
+              </p>
+
+              <textarea
+                value={text}
+                onChange={(event) => setText(event.target.value)}
+                placeholder="Paste your document here..."
+                rows={10}
+                className="mt-4 w-full rounded-xl border border-white/10 bg-slate-950 p-4 text-sm text-slate-100 placeholder:text-slate-500 focus:border-violet-400 focus:outline-none"
+              />
+            </>
+          )}
+
+          {activeTab === 'file' && (
+            <FileUpload onImport={handleFileOrNotionImport} />
+          )}
+
+          {activeTab === 'notion' && (
+            <NotionImport onImport={handleFileOrNotionImport} />
+          )}
 
         {preview && (
           <div className="mt-3 text-xs text-slate-400">
@@ -180,19 +241,21 @@ export function DocumentImportModal({ isOpen, onClose }: DocumentImportModalProp
           </div>
         )}
 
-          <div className="mt-4 flex items-center justify-between">
-            <div className="text-xs text-slate-500">
-              Tip: Use bullet lists for features and screens.
+          {activeTab === 'paste' && (
+            <div className="mt-4 flex items-center justify-between">
+              <div className="text-xs text-slate-500">
+                Tip: Use bullet lists for features and screens.
+              </div>
+              <button
+                onClick={() => handleImport()}
+                disabled={isImporting}
+                className="inline-flex items-center gap-2 rounded-lg bg-violet-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-400 disabled:opacity-60"
+              >
+                {isImporting ? <Loader2 size={14} className="animate-spin" /> : null}
+                {isImporting ? 'Importing...' : 'Import to Canvas'}
+              </button>
             </div>
-            <button
-              onClick={handleImport}
-              disabled={isImporting}
-              className="inline-flex items-center gap-2 rounded-lg bg-violet-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-400 disabled:opacity-60"
-            >
-              {isImporting ? <Loader2 size={14} className="animate-spin" /> : null}
-              {isImporting ? 'Importing...' : 'Import to Canvas'}
-            </button>
-          </div>
+          )}
         </div>
       </div>
     </div>

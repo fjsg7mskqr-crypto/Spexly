@@ -2,7 +2,7 @@
 
 import { memo, type ReactNode, useEffect, useRef } from 'react';
 import { Handle, Position } from '@xyflow/react';
-import { ChevronRight, Trash2, Check } from 'lucide-react';
+import { ChevronRight, Trash2, Check, PanelLeftOpen } from 'lucide-react';
 import { useCanvasStore } from '@/store/canvasStore';
 import { NODE_TYPE_CONFIGS } from '@/lib/constants';
 import type { SpexlyNodeType } from '@/types/nodes';
@@ -32,6 +32,7 @@ function NodeWrapperInner({
   const toggleNodeCompleted = useCanvasStore((s) => s.toggleNodeCompleted);
   const deleteNode = useCanvasStore((s) => s.deleteNode);
   const setNodeHeight = useCanvasStore((s) => s.setNodeHeight);
+  const setSidebarNodeId = useCanvasStore((s) => s.setSidebarNodeId);
   const config = NODE_TYPE_CONFIGS[type];
   const Icon = config.icon;
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -70,19 +71,23 @@ function NodeWrapperInner({
         className="flex items-center gap-2 px-3 py-2.5 cursor-pointer select-none"
         onClick={() => toggleNodeExpanded(id)}
       >
-        {/* Completion checkbox */}
+        {/* Completion checkbox — outer button provides a larger hit area */}
         <button
-          className={`shrink-0 flex items-center justify-center w-[18px] h-[18px] rounded-full border-2 transition-all duration-200 ${
-            completed
-              ? 'border-emerald-400 bg-emerald-500 scale-110'
-              : 'border-slate-500 hover:border-slate-300'
-          }`}
+          className="shrink-0 flex items-center justify-center p-1 -m-1"
           onClick={(e) => {
             e.stopPropagation();
             toggleNodeCompleted(id);
           }}
         >
-          {completed && <Check size={11} className="text-white" strokeWidth={3} />}
+          <span
+            className={`flex items-center justify-center w-[18px] h-[18px] rounded-full border-2 transition-all duration-200 ${
+              completed
+                ? 'border-emerald-400 bg-emerald-500 scale-110'
+                : 'border-slate-500 hover:border-slate-300'
+            }`}
+          >
+            {completed && <Check size={11} className="text-white" strokeWidth={3} />}
+          </span>
         </button>
 
         <Icon
@@ -121,23 +126,35 @@ function NodeWrapperInner({
         }}
       >
         <div
-          className={`space-y-3 px-4 pb-4 pt-1 transition-opacity duration-200 ${completed ? 'opacity-50' : ''} overflow-y-auto`}
+          className={`nowheel space-y-3 px-4 pb-4 pt-1 transition-opacity duration-200 ${completed ? 'opacity-50' : ''} overflow-y-auto custom-scrollbar`}
           style={{ maxHeight: '650px' }}
         >
           {children}
         </div>
       </div>
 
-      {/* Delete button — inside card, top-right of header */}
-      <button
-        className="absolute right-2 top-2.5 hidden group-hover:flex items-center justify-center text-slate-500 hover:text-red-400 transition-colors"
-        onClick={(e) => {
-          e.stopPropagation();
-          deleteNode(id);
-        }}
-      >
-        <Trash2 size={13} />
-      </button>
+      {/* Action buttons — inside card, top-right of header */}
+      <div className="absolute right-1 top-1 hidden group-hover:flex items-center">
+        <button
+          className="flex items-center justify-center p-1.5 rounded text-slate-500 hover:text-sky-400 hover:bg-slate-700/50 transition-colors"
+          title="Open in sidebar"
+          onClick={(e) => {
+            e.stopPropagation();
+            setSidebarNodeId(id);
+          }}
+        >
+          <PanelLeftOpen size={13} />
+        </button>
+        <button
+          className="flex items-center justify-center p-1.5 rounded text-slate-500 hover:text-red-400 hover:bg-slate-700/50 transition-colors"
+          onClick={(e) => {
+            e.stopPropagation();
+            deleteNode(id);
+          }}
+        >
+          <Trash2 size={13} />
+        </button>
+      </div>
 
       <Handle type="source" position={Position.Right} />
     </div>

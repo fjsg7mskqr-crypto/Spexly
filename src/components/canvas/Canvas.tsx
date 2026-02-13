@@ -16,6 +16,7 @@ import { Toolbar } from './Toolbar';
 import { DocumentImportModal } from './DocumentImportModal';
 import { TemplatesModal } from './TemplatesModal';
 import { ProgressDashboard } from '@/components/dashboard/ProgressDashboard';
+import { NodeDetailSidebar } from './NodeDetailSidebar';
 import { GRID_SNAP, CANVAS_BG_COLOR, CANVAS_DOT_COLOR, EDGE_COLOR } from '@/lib/constants';
 
 import IdeaNode from '@/components/nodes/IdeaNode';
@@ -62,6 +63,9 @@ export function Canvas() {
   const deleteSelected = useCanvasStore((s) => s.deleteSelected);
   const undo = useCanvasStore((s) => s.undo);
   const redo = useCanvasStore((s) => s.redo);
+
+  const sidebarNodeId = useCanvasStore((s) => s.sidebarNodeId);
+  const setSidebarNodeId = useCanvasStore((s) => s.setSidebarNodeId);
 
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
@@ -153,6 +157,10 @@ export function Canvas() {
           }}
         />
       </ReactFlow>
+      <NodeDetailSidebar
+        isOpen={!!sidebarNodeId}
+        onClose={() => setSidebarNodeId(null)}
+      />
       <ProgressDashboard
         isOpen={isDashboardOpen}
         onClose={() => setIsDashboardOpen(false)}

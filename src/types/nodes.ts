@@ -113,6 +113,7 @@ export interface PromptNodeData {
   contextUsed: string[];
   actualOutput: string;
   refinements: string[];
+  breakdown: string[];
   // Metadata
   tags: string[];
   estimatedHours: number | null;

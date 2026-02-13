@@ -25,7 +25,7 @@ import type {
 } from '@/types/nodes';
 
 const MAX_INPUT_LENGTH = 25000;
-const MAX_OUTPUT_TOKENS = 3500; // Increased from 1500 to support detailed structured output
+const MAX_OUTPUT_TOKENS = 8000; // Increased to 8000 to prevent JSON truncation
 const MAX_FEATURES = 15;
 const MAX_SCREENS = 15;
 const MAX_PROMPTS = 8;
@@ -172,7 +172,19 @@ function safeParseJson(payload: string): Record<string, unknown> {
     .replace(/```json/gi, '')
     .replace(/```/g, '')
     .trim();
-  return JSON.parse(cleaned);
+
+  try {
+    return JSON.parse(cleaned);
+  } catch (error) {
+    // Log detailed error info for debugging
+    console.error('JSON Parse Error:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      payloadLength: payload.length,
+      payloadPreview: payload.substring(0, 200),
+      payloadEnd: payload.substring(Math.max(0, payload.length - 200)),
+    });
+    throw error;
+  }
 }
 
 function sanitizePriority(value: unknown): FeaturePriority {
@@ -405,8 +417,21 @@ function buildPrompt(input: WizardEnhanceInput): string {
     '    "testingRequirements": string',
     '  }],',
     '  "techStack": [{"category":"Frontend|Backend|Database|Auth|Hosting|Other","toolName": string, "notes": string}],',
-    '  "prompts": [{"text": string, "targetTool":"Claude|Bolt|Cursor|Lovable|Replit|Other"}]',
+    '  "prompts": [{"text": string (2-4 sentence actionable description), "targetTool":"Claude|Bolt|Cursor|Lovable|Replit|Other"}]',
     '}',
+    '',
+    '=== PROMPT QUALITY REQUIREMENTS ===',
+    '',
+    'Each prompt in the "prompts" array must be 2-4 sentences that describe:',
+    '1. WHAT to build (specific components, schemas, or flows)',
+    '2. WHICH data/features are involved (reference specific features by name)',
+    '3. HOW it connects to other parts of the system',
+    '',
+    'BAD prompt: "Generate the core data models"',
+    'GOOD prompt: "Set up the database schema and tables for users, teams, and subscriptions. Include row-level security policies for team-scoped access. Create TypeScript types matching each table and a seed script for development data."',
+    '',
+    'Order prompts in logical build sequence: data layer → auth → core features → UI/screens → polish/testing.',
+    'Generate 3-5 prompts that together cover the full project build.',
     '',
     'CRITICAL RULES:',
     '1. Return ONLY valid JSON, no markdown blocks or explanatory text',
@@ -417,6 +442,7 @@ function buildPrompt(input: WizardEnhanceInput): string {
     '6. Use user input to infer tech stack and suggest appropriate prompts',
     '7. Make dependencies realistic - only list features that logically must come first',
     '8. Write clear, actionable implementation steps - avoid vague descriptions',
+    '9. Each prompt text MUST be 2-4 sentences — never a single sentence',
   ]
     .filter(Boolean)
     .join('\n');
@@ -471,12 +497,17 @@ export async function enhanceWizardAnswers(input: WizardEnhanceInput): Promise<W
       model: getModel(),
       messages: [
         {
+          role: 'system',
+          content: 'You are a JSON-only assistant. Return ONLY valid JSON with no markdown, explanations, or additional text.',
+        },
+        {
           role: 'user',
           content: buildPrompt(input),
         },
       ],
       max_tokens: MAX_OUTPUT_TOKENS,
       temperature: 0.2,
+      response_format: { type: 'json_object' }, // Force valid JSON output
     });
 
     const outputText = response.choices[0]?.message?.content?.trim();

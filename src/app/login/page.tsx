@@ -7,7 +7,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-8 dark:bg-black">
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center text-center">
-          <Image src="/spexly-logo-white.png" alt="Spexly" width={1349} height={603} className="mb-6 h-16 w-auto" />
+          <Image src="/spexly-logo-white.png" alt="Spexly" width={1349} height={603} className="mb-6 h-16 w-auto" priority />
           <h1 className="text-3xl font-bold text-black dark:text-white">
             Sign in
           </h1>

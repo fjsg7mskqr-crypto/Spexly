@@ -9,8 +9,16 @@ import { DEFAULT_TEMPLATE_ID, TEMPLATE_OPTIONS, getTemplateById, type TemplateId
 import { enhanceWizardAnswers, type WizardEnhanceOutput } from '@/app/actions/wizardEnhance';
 import { StepIndicator } from './StepIndicator';
 import { WizardStep } from './WizardStep';
-import type { TargetTool } from '@/types/nodes';
+import type { TargetTool, SpexlyNode } from '@/types/nodes';
 import { formatErrorForClient } from '@/lib/errors';
+import { getPopulatedFields, buildFieldUpdate } from '@/lib/import/mergeStrategy';
+import { matchExtractedToExisting } from '@/lib/import/fuzzyMatcher';
+import type { ExistingNodeSummary, NodeFieldUpdate, SpexlyNodeType } from '@/types/nodes';
+
+interface ExtractedItem {
+  name: string;
+  type: SpexlyNodeType;
+}
 
 interface ProjectWizardProps {
   isOpen: boolean;
@@ -61,6 +69,7 @@ export function ProjectWizard({ isOpen, onClose, onComplete }: ProjectWizardProp
 
   const nodes = useCanvasStore((s) => s.nodes);
   const setNodesAndEdges = useCanvasStore((s) => s.setNodesAndEdges);
+  const smartImport = useCanvasStore((s) => s.smartImport);
 
   const isLastStep = step === TOTAL_STEPS - 1;
 
@@ -134,8 +143,82 @@ export function ProjectWizard({ isOpen, onClose, onComplete }: ProjectWizardProp
     };
 
     const { nodes: newNodes, edges: newEdges } = generateCanvas(input);
-    setNodesAndEdges(newNodes, newEdges);
+
+    // If there are existing nodes, use smart import to fill them instead of replacing
+    if (nodes.length > 0) {
+      // Build existing node summaries for matching
+      const existingNodeSummaries: ExistingNodeSummary[] = nodes
+        .filter((node) => ['idea', 'feature', 'screen', 'techStack'].includes(node.type))
+        .map((node) => ({
+          id: node.id,
+          type: node.type as 'idea' | 'feature' | 'screen' | 'techStack',
+          name: getNodePrimaryName(node),
+          populatedFields: getPopulatedFields(node.data as Record<string, unknown>),
+        }));
+
+      // Convert new nodes into ExtractedItem format for matching
+      const extractedItems: ExtractedItem[] = newNodes
+        .filter((node) => ['idea', 'feature', 'screen', 'techStack'].includes(node.type))
+        .map((node) => ({
+          type: node.type as 'idea' | 'feature' | 'screen' | 'techStack',
+          name: getNodePrimaryName(node),
+        }));
+
+      // Match wizard-generated items with existing nodes
+      const { matches, unmatched } = matchExtractedToExisting(extractedItems, existingNodeSummaries);
+
+      // Build field updates for matched nodes
+      const updates: NodeFieldUpdate[] = [];
+      for (const match of matches) {
+        const existingNode = existingNodeSummaries.find((n) => n.id === match.existingNodeId);
+        if (!existingNode) continue;
+
+        const newNode = newNodes.find(
+          (n) => n.type === existingNode.type && getNodePrimaryName(n) === match.extractedName
+        );
+        if (!newNode) continue;
+
+        const update = buildFieldUpdate(
+          existingNode.id,
+          existingNode.type,
+          existingNode.populatedFields,
+          newNode.data as Record<string, unknown>
+        );
+
+        if (update) {
+          updates.push(update);
+        }
+      }
+
+      // Filter new nodes to only include unmatched items
+      const unmatchedNewNodes = newNodes.filter((node) => {
+        if (!['idea', 'feature', 'screen', 'techStack'].includes(node.type)) {
+          return true; // Keep non-matchable nodes (notes, prompts)
+        }
+        const nodeName = getNodePrimaryName(node);
+        return unmatched.some(
+          (item) => item.type === node.type && item.name.toLowerCase() === nodeName.toLowerCase()
+        );
+      });
+
+      // Use smart import to update existing nodes and add only unmatched new ones
+      smartImport(updates, unmatchedNewNodes, newEdges);
+    } else {
+      // No existing nodes, just set everything
+      setNodesAndEdges(newNodes, newEdges);
+    }
+
     handleClose();
+  }
+
+  // Helper function to get primary name from a node
+  function getNodePrimaryName(node: SpexlyNode): string {
+    const data = node.data as Record<string, unknown>;
+    if (node.type === 'idea') return (data.appName as string) || '';
+    if (node.type === 'feature') return (data.featureName as string) || '';
+    if (node.type === 'screen') return (data.screenName as string) || '';
+    if (node.type === 'techStack') return (data.toolName as string) || '';
+    return '';
   }
 
   function handleClose() {

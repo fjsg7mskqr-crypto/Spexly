@@ -12,6 +12,7 @@ import type {
   FeatureStatus,
   FeatureEffort,
 } from '@/types/nodes';
+import { buildRichPrompt } from '@/lib/prompts/richPromptBuilder';
 
 export interface GenerateCanvasInput {
   appName?: string;
@@ -226,24 +227,65 @@ export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput
     } as TechStackNodeData,
   })) as SpexlyNode[];
 
-  const promptNodes: SpexlyNode[] = promptPack.map((item, i) => ({
-    id: `prompt-${ts}-${i}`,
-    type: 'prompt' as const,
-    position: promptPositions[i],
-    data: {
-      promptText: item.text,
-      targetTool: item.targetTool ?? input.tool,
-      resultNotes: '',
-      expanded: false,
-      completed: false,
-      promptVersion: '',
-      contextUsed: [],
-      actualOutput: '',
-      refinements: [],
-      tags: [],
-      estimatedHours: null,
-    } as PromptNodeData,
+  // Build rich prompt context from the generated nodes
+  const ideaContext = {
+    appName: input.appName ?? '',
+    description: input.description,
+    targetUser: input.targetUser,
+    coreProblem: input.coreProblem,
+    constraints: [] as string[],
+  };
+  const featureContext = featureSource.map((f) => ({
+    featureName: f.featureName,
+    summary: (f.summary as string) ?? '',
+    userStory: (f.userStory as string) ?? undefined,
+    acceptanceCriteria: (f.acceptanceCriteria as string[]) ?? undefined,
+    implementationSteps: (f.implementationSteps as string[]) ?? undefined,
+    dependencies: (f.dependencies as string[]) ?? undefined,
+    technicalConstraints: (f.technicalConstraints as string) ?? undefined,
   }));
+  const screenContext = screenSource.map((s) => ({
+    screenName: s.screenName,
+    purpose: (s.purpose as string) ?? '',
+    keyElements: (s.keyElements as string[]) ?? undefined,
+    states: (s.states as string[]) ?? undefined,
+  }));
+  const techContext = techStack.map((t) => ({
+    category: t.category,
+    toolName: t.toolName,
+    notes: t.notes,
+  }));
+
+  const promptNodes: SpexlyNode[] = promptPack.map((item, i) => {
+    // Enrich the prompt text with project context
+    const richText = buildRichPrompt({
+      promptText: item.text,
+      idea: ideaContext,
+      features: featureContext,
+      screens: screenContext,
+      techStack: techContext,
+    });
+
+    return {
+      id: `prompt-${ts}-${i}`,
+      type: 'prompt' as const,
+      position: promptPositions[i],
+      data: {
+        promptText: richText,
+        targetTool: item.targetTool ?? input.tool,
+        resultNotes: '',
+        expanded: false,
+        completed: false,
+        promptVersion: '',
+        contextUsed: [],
+        actualOutput: '',
+        refinements: [],
+        breakdown: [],
+        tags: [],
+        estimatedHours: null,
+      } as PromptNodeData,
+    };
+  });
 
   const nodes: SpexlyNode[] = [
     ...(input.skipIdeaNode ? [] : [ideaNode]),

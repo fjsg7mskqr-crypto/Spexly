@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useRef, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Plus, Sparkles, LogOut } from 'lucide-react';
+import { Plus, Sparkles, LogOut, Undo2 } from 'lucide-react';
 import { signOut } from '@/lib/supabase/auth-helpers';
 import { createProject, createProjectFromWizard, renameProject, deleteProject } from '@/app/actions/projects';
 import { generateCanvas } from '@/lib/generateCanvas';
@@ -23,6 +23,36 @@ export function DashboardLayout({ projects: initialProjects, userEmail }: Dashbo
   const [projects, setProjects] = useState(initialProjects);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+
+  // Undo delete state
+  const [pendingDelete, setPendingDelete] = useState<Project | null>(null);
+  const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const UNDO_TIMEOUT_MS = 5000;
+
+  const clearPendingDelete = useCallback(() => {
+    if (deleteTimerRef.current) {
+      clearTimeout(deleteTimerRef.current);
+      deleteTimerRef.current = null;
+    }
+    setPendingDelete(null);
+  }, []);
+
+  const handleUndoDelete = useCallback(() => {
+    if (!pendingDelete) return;
+    // Restore the project back into the list
+    setProjects((prev) => [...prev, pendingDelete].sort(
+      (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+    ));
+    clearPendingDelete();
+  }, [pendingDelete, clearPendingDelete]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
+    };
+  }, []);
 
   const handleNewBlankProject = () => {
     startTransition(async () => {
@@ -70,10 +100,32 @@ export function DashboardLayout({ projects: initialProjects, userEmail }: Dashbo
   };
 
   const handleDelete = (id: string) => {
+    // If there's already a pending delete, commit it immediately
+    if (pendingDelete && deleteTimerRef.current) {
+      clearTimeout(deleteTimerRef.current);
+      deleteTimerRef.current = null;
+      const prevId = pendingDelete.id;
+      setPendingDelete(null);
+      startTransition(async () => {
+        await deleteProject(prevId);
+      });
+    }
+
+    const project = projects.find((p) => p.id === id);
+    if (!project) return;
+
+    // Remove from UI immediately
     setProjects((prev) => prev.filter((p) => p.id !== id));
-    startTransition(async () => {
-      await deleteProject(id);
-    });
+    setPendingDelete(project);
+
+    // Schedule actual deletion after timeout
+    deleteTimerRef.current = setTimeout(() => {
+      deleteTimerRef.current = null;
+      setPendingDelete(null);
+      startTransition(async () => {
+        await deleteProject(id);
+      });
+    }, UNDO_TIMEOUT_MS);
   };
 
   const handleSignOut = async () => {
@@ -86,7 +138,7 @@ export function DashboardLayout({ projects: initialProjects, userEmail }: Dashbo
       {/* Header */}
       <header className="border-b border-white/5 bg-slate-900/80 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <Image src="/spexly-logo-white.png" alt="Spexly" width={1349} height={603} className="h-12 w-auto" />
+          <Image src="/spexly-logo-white.png" alt="Spexly" width={1349} height={603} className="h-12 w-auto" priority />
           <div className="flex items-center gap-4">
             <span className="text-sm text-slate-400">{userEmail}</span>
             <button
@@ -157,6 +209,24 @@ export function DashboardLayout({ projects: initialProjects, userEmail }: Dashbo
         onClose={() => setIsWizardOpen(false)}
         onComplete={handleWizardComplete}
       />
+
+      {/* Undo Delete Toast */}
+      {pendingDelete && (
+        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 animate-slide-up">
+          <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-slate-800 px-4 py-3 shadow-xl shadow-black/30">
+            <span className="text-sm text-slate-300">
+              Deleted &ldquo;{pendingDelete.name}&rdquo;
+            </span>
+            <button
+              onClick={handleUndoDelete}
+              className="flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-violet-500"
+            >
+              <Undo2 size={14} />
+              Undo
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

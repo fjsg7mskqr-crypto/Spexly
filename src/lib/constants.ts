@@ -146,6 +146,7 @@ export const NODE_TYPE_CONFIGS: Record<SpexlyNodeType, NodeTypeConfig> = {
       contextUsed: [],
       actualOutput: '',
       refinements: [],
+      breakdown: [],
       tags: [],
       estimatedHours: null,
     },

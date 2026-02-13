@@ -66,6 +66,10 @@ interface CanvasState {
 
   smartImport: (updates: NodeFieldUpdate[], newNodes: SpexlyNode[], newEdges: SpexlyEdge[]) => void;
 
+  // Sidebar
+  sidebarNodeId: string | null;
+  setSidebarNodeId: (nodeId: string | null) => void;
+
   // Project lifecycle
   loadProject: (id: string, name: string, nodes: SpexlyNode[], edges: SpexlyEdge[]) => void;
   clearCanvas: () => void;
@@ -239,6 +243,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   projectName: '',
   isSaving: false,
   lastSavedAt: null,
+  sidebarNodeId: null,
 
   onNodesChange: (changes) => {
     const significantChange = changes.some(
@@ -324,9 +329,11 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
 
   deleteNode: (nodeId) => {
     get().pushHistory();
+    const sidebarNodeId = get().sidebarNodeId;
     set({
       nodes: get().nodes.filter((n) => n.id !== nodeId),
       edges: get().edges.filter((e) => e.source !== nodeId && e.target !== nodeId),
+      ...(sidebarNodeId === nodeId ? { sidebarNodeId: null } : {}),
     });
   },
 
@@ -615,6 +622,10 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     set({ nodes: aligned, edges });
   },
 
+  setSidebarNodeId: (nodeId) => {
+    set({ sidebarNodeId: nodeId });
+  },
+
   loadProject: (id, name, nodes, edges) => {
     set({
       projectId: id,
@@ -646,6 +657,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       baselineEdges: [],
       nodeHeights: {},
       expandShiftMap: {},
+      sidebarNodeId: null,
     });
   },
 
