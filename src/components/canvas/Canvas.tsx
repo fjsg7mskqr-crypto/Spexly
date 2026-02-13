@@ -17,6 +17,7 @@ import { DocumentImportModal } from './DocumentImportModal';
 import { TemplatesModal } from './TemplatesModal';
 import { ProgressDashboard } from '@/components/dashboard/ProgressDashboard';
 import { NodeDetailSidebar } from './NodeDetailSidebar';
+import { BatchEnhanceModal } from './BatchEnhanceModal';
 import { GRID_SNAP, CANVAS_BG_COLOR, CANVAS_DOT_COLOR, EDGE_COLOR } from '@/lib/constants';
 
 import IdeaNode from '@/components/nodes/IdeaNode';
@@ -70,6 +71,7 @@ export function Canvas() {
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
+  const [isBatchEnhanceOpen, setIsBatchEnhanceOpen] = useState(false);
   const resetLayout = useCanvasStore((s) => s.resetLayout);
 
   useEffect(() => {
@@ -114,6 +116,7 @@ export function Canvas() {
         onOpenImport={() => setIsImportOpen(true)}
         onOpenTemplates={() => setIsTemplatesOpen(true)}
         onResetLayout={resetLayout}
+        onOpenBatchEnhance={() => setIsBatchEnhanceOpen(true)}
       />
       <ReactFlow
         nodes={nodes}
@@ -167,6 +170,7 @@ export function Canvas() {
       />
       <DocumentImportModal isOpen={isImportOpen} onClose={() => setIsImportOpen(false)} />
       <TemplatesModal isOpen={isTemplatesOpen} onClose={() => setIsTemplatesOpen(false)} />
+      <BatchEnhanceModal isOpen={isBatchEnhanceOpen} onClose={() => setIsBatchEnhanceOpen(false)} />
     </div>
   );
 }

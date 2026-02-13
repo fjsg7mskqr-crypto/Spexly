@@ -1,6 +1,5 @@
 'use server';
 
-import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { NotionIntegration, NotionOAuth, type NotionPage } from '@/lib/integrations/notion';
 import { BaseIntegration } from '@/lib/integrations/base';
@@ -127,6 +126,92 @@ export async function importFromNotion(
       throw error;
     }
     throw new DatabaseError('Failed to import from Notion');
+  }
+}
+
+/**
+ * Checks if the current user has a connected Notion integration.
+ */
+export async function checkNotionConnection(): Promise<{ connected: boolean }> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { connected: false };
+    }
+
+    const auth = await BaseIntegration.loadForUser('notion', user.id);
+    return { connected: Boolean(auth?.accessToken) };
+  } catch {
+    return { connected: false };
+  }
+}
+
+/**
+ * Imports a Notion page and returns raw markdown content.
+ * Uses the richer NotionIntegration class for block conversion
+ * (supports bold, italic, links, to-dos, dividers, recursive children).
+ */
+export async function importNotionPageAsMarkdown(pageId: string): Promise<{
+  success: boolean;
+  content?: string;
+  title?: string;
+  error?: string;
+}> {
+  try {
+    if (!pageId || pageId.trim().length === 0) {
+      throw new ValidationError('Page ID is required');
+    }
+
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      throw new AuthenticationError();
+    }
+
+    const auth = await BaseIntegration.loadForUser('notion', user.id);
+    if (!auth) {
+      return { success: false, error: 'Notion not connected.' };
+    }
+
+    const notion = new NotionIntegration(auth, user.id, supabase);
+    const { markdown, title } = await notion.importPage(pageId);
+
+    return { success: true, content: markdown, title };
+  } catch (error) {
+    logError(error, { action: 'importNotionPageAsMarkdown', pageId });
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to import Notion page',
+    };
+  }
+}
+
+/**
+ * Lists Notion pages in the format expected by the NotionImport UI component.
+ */
+export async function listNotionPagesForUI(): Promise<{
+  success: boolean;
+  pages?: Array<{ id: string; title: string; url: string }>;
+  error?: string;
+}> {
+  try {
+    const pages = await listNotionPages();
+    return {
+      success: true,
+      pages: pages.map((p) => ({ id: p.id, title: p.title, url: p.url })),
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to list pages',
+    };
   }
 }
 

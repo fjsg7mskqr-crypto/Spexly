@@ -44,6 +44,15 @@ function makeFeatureNode(id: string, status: string): SpexlyNode {
       notes: '',
       expanded: true,
       completed: false,
+      aiContext: '',
+      implementationSteps: [],
+      codeReferences: [],
+      testingRequirements: '',
+      relatedFiles: [],
+      technicalConstraints: '',
+      tags: [],
+      estimatedHours: null,
+      version: 0,
     },
   } as SpexlyNode;
 }

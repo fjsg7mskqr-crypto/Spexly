@@ -78,7 +78,6 @@ interface CanvasState {
 }
 
 const BASE_VERTICAL_GAP = 0;
-const EXPANDED_VERTICAL_GAP = 220;
 const COLUMN_X = [0, 360, 720, 1080, 1440, 1800];
 const ROW_SPACING = 250;
 const NODE_WIDTH = 320;
@@ -556,7 +555,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     get().pushHistory();
 
     // 1. Apply field updates to existing nodes
-    let updatedNodes = get().nodes.map((node) => {
+    const updatedNodes = get().nodes.map((node) => {
       const update = updates.find((u) => u.nodeId === node.id);
       if (!update) return node;
       return { ...node, data: { ...node.data, ...update.fieldsToFill } } as SpexlyNode;

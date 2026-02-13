@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, BarChart3, Cloud, CloudOff, FileText, LayoutGrid, Loader2, RotateCcw } from 'lucide-react';
+import { ArrowLeft, BarChart3, Cloud, CloudOff, FileText, LayoutGrid, Loader2, RotateCcw, Sparkles } from 'lucide-react';
 import { useCanvasStore } from '@/store/canvasStore';
 import { AddNodeMenu } from './AddNodeMenu';
 import { ExportMenu } from './ExportMenu';
@@ -12,6 +12,7 @@ interface ToolbarProps {
   onOpenImport: () => void;
   onOpenTemplates: () => void;
   onResetLayout: () => void;
+  onOpenBatchEnhance: () => void;
 }
 
 function SaveStatus() {
@@ -53,6 +54,7 @@ export function Toolbar({
   onOpenImport,
   onOpenTemplates,
   onResetLayout,
+  onOpenBatchEnhance,
 }: ToolbarProps) {
   const projectName = useCanvasStore((s) => s.projectName);
 
@@ -106,6 +108,13 @@ export function Toolbar({
         >
           <LayoutGrid size={16} />
           Templates
+        </button>
+        <button
+          onClick={onOpenBatchEnhance}
+          className="flex items-center gap-2 rounded-lg border border-violet-400/50 bg-violet-400/10 px-3 py-1.5 text-sm font-medium text-violet-300 transition-colors hover:bg-violet-400/20"
+        >
+          <Sparkles size={16} />
+          Enhance All
         </button>
         <ExportMenu />
         <AddNodeMenu />

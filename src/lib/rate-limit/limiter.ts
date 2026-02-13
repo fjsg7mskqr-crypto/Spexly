@@ -113,6 +113,19 @@ export const wizardDailyRateLimiter = redis
   : null;
 
 /**
+ * Rate limiter for batch AI enhancement operations
+ * Limit: 3 batch operations per hour per user
+ */
+export const batchEnhanceHourlyRateLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(3, '1 h'),
+      analytics: true,
+      prefix: 'ratelimit:batch-enhance:hour',
+    })
+  : null;
+
+/**
  * Rate limiter for public waitlist submissions
  * Limit: 10 submissions per hour per IP
  */
@@ -143,7 +156,7 @@ export async function checkRateLimit(
     throw new Error('Rate limiting not configured');
   }
 
-  const { success, limit, remaining, reset } = await limiter.limit(identifier);
+  const { success, remaining, reset } = await limiter.limit(identifier);
 
   return {
     success,

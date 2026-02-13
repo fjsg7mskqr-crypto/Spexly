@@ -2,8 +2,7 @@
 
 import OpenAI from 'openai';
 import { createClient } from '@/lib/supabase/server';
-import { AuthenticationError, RateLimitError, logError } from '@/lib/errors';
-import type { FeatureNodeData, ScreenNodeData } from '@/types/nodes';
+import { AuthenticationError, logError } from '@/lib/errors';
 
 const MAX_OUTPUT_TOKENS = 2000;
 

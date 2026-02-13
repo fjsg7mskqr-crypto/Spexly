@@ -1,4 +1,11 @@
 import { Client } from '@notionhq/client';
+import type {
+  PageObjectResponse,
+  BlockObjectResponse,
+  PartialBlockObjectResponse,
+  RichTextItemResponse,
+  GetPageResponse,
+} from '@notionhq/client/build/src/api-endpoints';
 import { BaseIntegration, type IntegrationAuth } from './base';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -13,6 +20,16 @@ export interface NotionImportResult {
   markdown: string;
   title: string;
   pageId: string;
+}
+
+type NotionBlock = BlockObjectResponse | PartialBlockObjectResponse;
+
+function isFullPage(page: GetPageResponse): page is PageObjectResponse {
+  return 'properties' in page && 'url' in page;
+}
+
+function isFullBlock(block: NotionBlock): block is BlockObjectResponse {
+  return 'type' in block;
 }
 
 /**
@@ -60,8 +77,10 @@ export class NotionIntegration extends BaseIntegration {
       });
 
       return response.results
-        .filter((result) => 'url' in result && 'last_edited_time' in result)
-        .map((page: any) => ({
+        .filter((result): result is PageObjectResponse =>
+          'url' in result && 'last_edited_time' in result
+        )
+        .map((page) => ({
           id: page.id,
           title: this.extractPageTitle(page),
           url: page.url,
@@ -79,7 +98,7 @@ export class NotionIntegration extends BaseIntegration {
     try {
       // Fetch page metadata
       const page = await this.client.pages.retrieve({ page_id: pageId });
-      const title = this.extractPageTitle(page as any);
+      const title = isFullPage(page) ? this.extractPageTitle(page) : 'Untitled';
 
       // Fetch page content blocks
       const blocks = await this.fetchAllBlocks(pageId);
@@ -100,23 +119,24 @@ export class NotionIntegration extends BaseIntegration {
   /**
    * Extracts the title from a Notion page object.
    */
-  private extractPageTitle(page: any): string {
+  private extractPageTitle(page: PageObjectResponse): string {
     if (!page.properties) return 'Untitled';
 
     // Find the title property
     const titleProp = Object.values(page.properties).find(
-      (prop: any) => prop.type === 'title'
-    ) as any;
+      (prop) => prop.type === 'title'
+    );
 
-    if (!titleProp?.title?.[0]?.plain_text) return 'Untitled';
+    if (!titleProp || titleProp.type !== 'title') return 'Untitled';
+    if (!titleProp.title[0]?.plain_text) return 'Untitled';
     return titleProp.title[0].plain_text;
   }
 
   /**
    * Fetches all blocks from a page (handles pagination).
    */
-  private async fetchAllBlocks(blockId: string): Promise<any[]> {
-    const blocks: any[] = [];
+  private async fetchAllBlocks(blockId: string): Promise<BlockObjectResponse[]> {
+    const blocks: BlockObjectResponse[] = [];
     let cursor: string | undefined;
 
     do {
@@ -126,7 +146,11 @@ export class NotionIntegration extends BaseIntegration {
         page_size: 100,
       });
 
-      blocks.push(...response.results);
+      for (const block of response.results) {
+        if (isFullBlock(block)) {
+          blocks.push(block);
+        }
+      }
       cursor = response.has_more ? response.next_cursor || undefined : undefined;
     } while (cursor);
 
@@ -136,7 +160,7 @@ export class NotionIntegration extends BaseIntegration {
   /**
    * Converts Notion blocks to markdown format.
    */
-  private async blocksToMarkdown(blocks: any[]): Promise<string> {
+  private async blocksToMarkdown(blocks: BlockObjectResponse[]): Promise<string> {
     const lines: string[] = [];
 
     for (const block of blocks) {
@@ -157,10 +181,8 @@ export class NotionIntegration extends BaseIntegration {
   /**
    * Converts a single Notion block to markdown.
    */
-  private blockToMarkdown(block: any): string {
-    const type = block.type;
-
-    switch (type) {
+  private blockToMarkdown(block: BlockObjectResponse): string {
+    switch (block.type) {
       case 'paragraph':
         return this.richTextToMarkdown(block.paragraph.rich_text);
 
@@ -179,14 +201,16 @@ export class NotionIntegration extends BaseIntegration {
       case 'numbered_list_item':
         return `1. ${this.richTextToMarkdown(block.numbered_list_item.rich_text)}`;
 
-      case 'to_do':
+      case 'to_do': {
         const checked = block.to_do.checked ? 'x' : ' ';
         return `- [${checked}] ${this.richTextToMarkdown(block.to_do.rich_text)}`;
+      }
 
-      case 'code':
+      case 'code': {
         const language = block.code.language || '';
         const code = this.richTextToMarkdown(block.code.rich_text);
         return `\`\`\`${language}\n${code}\n\`\`\``;
+      }
 
       case 'quote':
         return `> ${this.richTextToMarkdown(block.quote.rich_text)}`;
@@ -202,7 +226,7 @@ export class NotionIntegration extends BaseIntegration {
   /**
    * Converts Notion rich text to plain markdown.
    */
-  private richTextToMarkdown(richText: any[]): string {
+  private richTextToMarkdown(richText: RichTextItemResponse[]): string {
     if (!richText || richText.length === 0) return '';
 
     return richText

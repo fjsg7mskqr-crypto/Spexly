@@ -23,13 +23,13 @@ export async function GET(request: NextRequest) {
     // Handle OAuth errors
     if (error) {
       return NextResponse.redirect(
-        new URL(`/dashboard/settings/integrations?error=${encodeURIComponent(error)}`, request.url)
+        new URL(`/dashboard?error=${encodeURIComponent(error)}`, request.url)
       );
     }
 
     if (!code) {
       return NextResponse.redirect(
-        new URL('/dashboard/settings/integrations?error=missing_code', request.url)
+        new URL('/dashboard?error=missing_code', request.url)
       );
     }
 
@@ -43,6 +43,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/login?error=unauthorized', request.url));
     }
 
+    // Validate OAuth state parameter to prevent CSRF attacks
+    if (state) {
+      const [prefix, stateUserId] = state.split(':');
+      if (prefix !== 'user' || stateUserId !== user.id) {
+        return NextResponse.redirect(
+          new URL('/dashboard?error=invalid_state', request.url)
+        );
+      }
+    }
+
     // Exchange code for token
     const oauth = new NotionOAuth();
     const auth = await oauth.exchangeCodeForToken(code);
@@ -52,13 +62,13 @@ export async function GET(request: NextRequest) {
 
     // Redirect to success page
     return NextResponse.redirect(
-      new URL('/dashboard/settings/integrations?success=notion_connected', request.url)
+      new URL('/dashboard?success=notion_connected', request.url)
     );
   } catch (error) {
     console.error('Notion OAuth callback error:', error);
     return NextResponse.redirect(
       new URL(
-        `/dashboard/settings/integrations?error=${encodeURIComponent(
+        `/dashboard?error=${encodeURIComponent(
           error instanceof Error ? error.message : 'oauth_failed'
         )}`,
         request.url

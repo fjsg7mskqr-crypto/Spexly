@@ -37,6 +37,12 @@ function makeProps(overrides?: Partial<NodeProps<IdeaNodeType>>): NodeProps<Idea
       coreProblem: '',
       expanded: true,
       completed: false,
+      projectArchitecture: '',
+      corePatterns: [],
+      constraints: [],
+      tags: [],
+      estimatedHours: null,
+      version: 0,
     },
     type: 'idea',
     selected: false,
@@ -80,6 +86,12 @@ describe('IdeaNode', () => {
             coreProblem: 'Testing is hard',
             expanded: true,
             completed: false,
+            projectArchitecture: '',
+            corePatterns: [],
+            constraints: [],
+            tags: [],
+            estimatedHours: null,
+            version: 0,
           },
         })}
       />
@@ -107,7 +119,7 @@ describe('IdeaNode', () => {
     render(
       <IdeaNode
         {...makeProps({
-          data: { appName: 'My Cool App', description: '', targetUser: '', coreProblem: '', expanded: true, completed: false },
+          data: { appName: 'My Cool App', description: '', targetUser: '', coreProblem: '', expanded: true, completed: false, projectArchitecture: '', corePatterns: [], constraints: [], tags: [], estimatedHours: null, version: 0 },
         })}
       />
     )

@@ -28,7 +28,6 @@ import type {
   NodeFieldUpdate,
   SmartImportResult,
   SmartImportSummary,
-  NodeMatch,
   SpexlyNodeType,
 } from '@/types/nodes';
 import {
@@ -594,7 +593,8 @@ export async function importDocumentWithAI(
         // Batch enhance features
         if (shouldEnhanceFeatures && featuresDetailed) {
           const featureEnhancements = await batchEnhanceFeatures(
-            featuresDetailed.map((f) => ({
+            featuresDetailed.map((f, idx) => ({
+              nodeId: featureNodes[idx]?.id ?? `feature-${idx}`,
               featureName: f.featureName,
               summary: f.summary,
               problem: f.problem,
@@ -618,7 +618,8 @@ export async function importDocumentWithAI(
         // Batch enhance screens
         if (shouldEnhanceScreens && screensDetailed) {
           const screenEnhancements = await batchEnhanceScreens(
-            screensDetailed.map((s) => ({
+            screensDetailed.map((s, idx) => ({
+              nodeId: screenNodes[idx]?.id ?? `screen-${idx}`,
               screenName: s.screenName,
               purpose: s.purpose,
               keyElements: s.keyElements,
