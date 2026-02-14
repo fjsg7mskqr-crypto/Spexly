@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { parseUploadedFile } from '@/app/actions/fileImport';
+import { showError } from '@/store/toastStore';
 
 export function FileUpload({ onImport }: { onImport: (content: string, fileName: string) => void }) {
   const [uploading, setUploading] = useState(false);
@@ -13,7 +14,7 @@ export function FileUpload({ onImport }: { onImport: (content: string, fileName:
 
     // Check file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      alert('File too large. Maximum size is 10MB.');
+      showError('File too large. Maximum size is 10MB.');
       return;
     }
 
@@ -31,20 +32,20 @@ export function FileUpload({ onImport }: { onImport: (content: string, fileName:
         if (result.success && result.content) {
           onImport(result.content, file.name);
         } else {
-          alert(`Failed to parse file: ${result.error || 'Unknown error'}`);
+          showError(result.error || 'Failed to parse file');
         }
 
         setUploading(false);
       };
 
       reader.onerror = () => {
-        alert('Failed to read file');
+        showError('Failed to read file');
         setUploading(false);
       };
 
       reader.readAsDataURL(file);
     } catch (error) {
-      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      showError(error instanceof Error ? error.message : 'Unknown error');
       setUploading(false);
     }
   }

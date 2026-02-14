@@ -1,5 +1,6 @@
 'use server';
 
+import { createHash } from 'crypto';
 import { createClient } from '@/lib/supabase/server';
 import {
   AuthenticationError,
@@ -9,6 +10,7 @@ import {
 } from '@/lib/errors';
 
 export type TaskStatus = 'todo' | 'in_progress' | 'done' | 'blocked';
+type LinkableNodeType = 'idea' | 'feature' | 'screen' | 'techStack' | 'prompt' | 'note';
 
 export interface TaskItem {
   id: string;
@@ -33,6 +35,15 @@ export interface TaskSummary {
   open: number;
   done: number;
 }
+
+const LINKABLE_NODE_TYPES = new Set<LinkableNodeType>([
+  'idea',
+  'feature',
+  'screen',
+  'techStack',
+  'prompt',
+  'note',
+]);
 
 function isMissingTaskTableError(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false;
@@ -250,5 +261,139 @@ export async function saveTaskAutofillMetadata(
     }
     logError(error, { action: 'saveTaskAutofillMetadata', taskId });
     throw new DatabaseError('Failed to save task metadata.');
+  }
+}
+
+function toExternalRef(projectId: string, nodeId: string, title: string): string {
+  const digest = createHash('sha256')
+    .update(`${projectId}:${nodeId}:${title.toLowerCase()}`)
+    .digest('hex')
+    .slice(0, 16);
+  return `prompt-breakdown:${nodeId}:${digest}`;
+}
+
+export async function syncPromptBreakdownTasks(
+  projectId: string,
+  nodeId: string,
+  nodeType: LinkableNodeType,
+  breakdown: string[],
+  sourceAgent?: string
+): Promise<void> {
+  try {
+    if (!projectId?.trim()) {
+      throw new ValidationError('Project ID is required.');
+    }
+    if (!nodeId?.trim()) {
+      throw new ValidationError('Node ID is required.');
+    }
+    if (!LINKABLE_NODE_TYPES.has(nodeType)) {
+      throw new ValidationError('Invalid node type.');
+    }
+
+    const normalized = breakdown
+      .filter((item): item is string => typeof item === 'string')
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0)
+      .map((item) => item.slice(0, 180))
+      .slice(0, 20);
+
+    if (normalized.length === 0) {
+      return;
+    }
+
+    const userId = await getAuthUserId();
+    const supabase = await createClient();
+
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('id', projectId)
+      .eq('user_id', userId)
+      .single();
+
+    if (projectError || !project) {
+      throw new ValidationError('Project not found.');
+    }
+
+    const rows = normalized.map((title) => ({
+      user_id: userId,
+      project_id: projectId,
+      node_id: nodeId,
+      node_type: nodeType,
+      link_confidence: 1,
+      title,
+      details: null,
+      status: 'todo' as TaskStatus,
+      source: 'agent',
+      source_agent: sourceAgent?.trim().slice(0, 64) || 'prompt-node',
+      external_ref: toExternalRef(projectId, nodeId, title),
+      metadata: {
+        source: 'prompt-breakdown',
+        nodeId,
+      },
+    }));
+
+    const { error } = await supabase
+      .from('task_items')
+      .upsert(rows, { onConflict: 'project_id,external_ref' });
+
+    if (error) {
+      if (isMissingTaskTableError(error)) {
+        throw new ValidationError('Task system is not initialized yet. Run latest database migrations.');
+      }
+      logError(error, { action: 'syncPromptBreakdownTasks', userId, projectId, nodeId });
+      throw new DatabaseError('Failed to sync prompt breakdown tasks.');
+    }
+  } catch (error) {
+    if (error instanceof AuthenticationError || error instanceof ValidationError || error instanceof DatabaseError) {
+      throw error;
+    }
+    logError(error, { action: 'syncPromptBreakdownTasks', projectId, nodeId });
+    throw new DatabaseError('Failed to sync prompt breakdown tasks.');
+  }
+}
+
+export async function linkTaskToNode(
+  taskId: string,
+  nodeId: string,
+  nodeType: LinkableNodeType
+): Promise<void> {
+  try {
+    if (!taskId?.trim()) {
+      throw new ValidationError('Task ID is required.');
+    }
+    if (!nodeId?.trim()) {
+      throw new ValidationError('Node ID is required.');
+    }
+    if (!LINKABLE_NODE_TYPES.has(nodeType)) {
+      throw new ValidationError('Invalid node type.');
+    }
+
+    const userId = await getAuthUserId();
+    const supabase = await createClient();
+
+    const { error } = await supabase
+      .from('task_items')
+      .update({
+        node_id: nodeId,
+        node_type: nodeType,
+        link_confidence: 1,
+      })
+      .eq('id', taskId)
+      .eq('user_id', userId);
+
+    if (error) {
+      if (isMissingTaskTableError(error)) {
+        throw new ValidationError('Task system is not initialized yet. Run latest database migrations.');
+      }
+      logError(error, { action: 'linkTaskToNode', userId, taskId, nodeId, nodeType });
+      throw new DatabaseError('Failed to link task to node.');
+    }
+  } catch (error) {
+    if (error instanceof AuthenticationError || error instanceof ValidationError || error instanceof DatabaseError) {
+      throw error;
+    }
+    logError(error, { action: 'linkTaskToNode', taskId, nodeId, nodeType });
+    throw new DatabaseError('Failed to link task to node.');
   }
 }

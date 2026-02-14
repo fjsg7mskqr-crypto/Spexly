@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, useRef, useCallback, useEffect } from 'react';
+import { useState, useMemo, useTransition, useRef, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Plus, Sparkles, LogOut, Undo2 } from 'lucide-react';
@@ -30,12 +30,10 @@ export function DashboardLayout({ projects: initialProjects, userEmail, userName
   const [projects, setProjects] = useState(initialProjects);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const [greeting, setGreeting] = useState('Your Projects');
-
-  useEffect(() => {
+  const greeting = useMemo(() => {
     const hour = new Date().getHours();
     const firstName = userName?.split(' ')[0];
-    setGreeting(firstName ? `${getGreeting(hour)}, ${firstName}` : getGreeting(hour));
+    return firstName ? `${getGreeting(hour)}, ${firstName}` : getGreeting(hour);
   }, [userName]);
 
   // Undo delete state

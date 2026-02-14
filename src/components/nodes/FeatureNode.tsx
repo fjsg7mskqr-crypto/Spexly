@@ -7,6 +7,7 @@ import { StatusBadge } from './StatusBadge';
 import { AIContextIndicator } from './AIContextIndicator';
 import { useCanvasStore } from '@/store/canvasStore';
 import { enhanceFeatureWithAI } from '@/app/actions/enhanceNodeWithAI';
+import { showError } from '@/store/toastStore';
 import type {
   FeatureNode as FeatureNodeType,
   FeaturePriority,
@@ -75,10 +76,10 @@ function FeatureNodeComponent({ id, data }: NodeProps<FeatureNodeType>) {
         updateNodeData(id, updates);
         setShowAiContext(true); // Expand to show generated content
       } else {
-        alert(`Failed to generate AI context: ${result.error || 'Unknown error'}`);
+        showError(result.error || 'Failed to generate AI context');
       }
     } catch (error) {
-      alert(`Error: ${error instanceof Error ? error.message : 'Failed to generate AI context'}`);
+      showError(error instanceof Error ? error.message : 'Failed to generate AI context');
     } finally {
       setIsGenerating(false);
     }

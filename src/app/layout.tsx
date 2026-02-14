@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { EmailVerificationGate } from "@/components/auth/EmailVerificationGate";
+import { ToastContainer } from "@/components/ui/ToastContainer";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://spexly.com'),
@@ -38,6 +39,7 @@ export default function RootLayout({
         <EmailVerificationGate>
           {children}
         </EmailVerificationGate>
+        <ToastContainer />
       </body>
     </html>
   );

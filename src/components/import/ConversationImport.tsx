@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { parseConversation, type ConversationParseResult } from '@/lib/import/conversationParser';
+import { showError } from '@/store/toastStore';
 
 interface ConversationImportProps {
   onImport: (content: string, title: string) => void;
@@ -43,7 +44,7 @@ export function ConversationImport({ onImport }: ConversationImportProps) {
     if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      alert('File too large. Maximum size is 10MB.');
+      showError('File too large. Maximum size is 10MB.');
       return;
     }
 

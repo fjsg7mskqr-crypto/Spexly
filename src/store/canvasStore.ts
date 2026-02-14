@@ -41,7 +41,7 @@ interface CanvasState {
   onEdgesChange: (changes: EdgeChange<SpexlyEdge>[]) => void;
   onConnect: (connection: Connection) => void;
 
-  addNode: (type: SpexlyNodeType, position: { x: number; y: number }) => void;
+  addNode: (type: SpexlyNodeType, position: { x: number; y: number }) => string;
   updateNodeData: (nodeId: string, data: Partial<SpexlyNodeData>) => void;
   deleteNode: (nodeId: string) => void;
   deleteSelected: () => void;
@@ -309,13 +309,15 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       }
     }
 
+    const id = `${type}-${Date.now()}`;
     const newNode = {
-      id: `${type}-${Date.now()}`,
+      id,
       type,
       position: finalPosition,
       data: { ...config.defaultData },
     } as SpexlyNode;
     set({ nodes: [...get().nodes, newNode] });
+    return id;
   },
 
   updateNodeData: (nodeId, data) => {

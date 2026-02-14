@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { showError } from '@/store/toastStore';
 import {
   checkNotionConnection,
   listNotionPagesForUI,
@@ -50,19 +51,18 @@ export function NotionImport({ onImport }: { onImport: (content: string, title: 
     if (result.success && result.content) {
       onImport(result.content, result.title || title);
     } else {
-      alert(`Failed to import: ${result.error || 'Unknown error'}`);
+      showError(result.error || 'Failed to import from Notion');
     }
     setImporting(false);
   }
 
   async function handleDisconnect() {
-    if (!confirm('Disconnect Notion?')) return;
     try {
       await disconnectNotion();
       setConnected(false);
       setPages([]);
     } catch {
-      alert('Failed to disconnect Notion');
+      showError('Failed to disconnect Notion');
     }
   }
 

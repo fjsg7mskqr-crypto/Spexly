@@ -5,6 +5,7 @@ import { CheckSquare, Loader2, RefreshCw, Trash2, X } from 'lucide-react';
 import {
   deleteTask,
   getProjectTasks,
+  linkTaskToNode,
   saveTaskAutofillMetadata,
   updateTaskStatus,
   type TaskItem,
@@ -13,6 +14,7 @@ import {
 import { useCanvasStore } from '@/store/canvasStore';
 import { buildNodeAutofillUpdate } from '@/lib/tasks/autofill';
 import { updateCanvasData } from '@/app/actions/projects';
+import type { SpexlyNodeType } from '@/types/nodes';
 
 interface TaskPanelProps {
   projectId: string | null;
@@ -62,9 +64,40 @@ function statusPillClass(status: TaskStatus): string {
   }
 }
 
+function inferNodeType(task: TaskItem): SpexlyNodeType {
+  const allowed: SpexlyNodeType[] = ['idea', 'feature', 'screen', 'techStack', 'prompt', 'note'];
+  if (task.node_type && allowed.includes(task.node_type as SpexlyNodeType)) {
+    return task.node_type as SpexlyNodeType;
+  }
+  return 'feature';
+}
+
+function taskToNodeData(task: TaskItem, nodeType: SpexlyNodeType): Record<string, unknown> {
+  const title = task.title.trim();
+  const details = task.details?.trim() || '';
+
+  switch (nodeType) {
+    case 'idea':
+      return { appName: title, description: details };
+    case 'feature':
+      return { featureName: title, summary: details };
+    case 'screen':
+      return { screenName: title, purpose: details };
+    case 'techStack':
+      return { toolName: title, notes: details };
+    case 'prompt':
+      return { promptText: `${title}\n\n${details}`.trim() };
+    case 'note':
+      return { title, body: details };
+    default:
+      return { featureName: title, summary: details };
+  }
+}
+
 export function TaskPanel({ projectId, isOpen, onClose }: TaskPanelProps) {
   const setSidebarNodeId = useCanvasStore((s) => s.setSidebarNodeId);
   const updateNodeData = useCanvasStore((s) => s.updateNodeData);
+  const addNode = useCanvasStore((s) => s.addNode);
   const nodes = useCanvasStore((s) => s.nodes);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -306,6 +339,37 @@ export function TaskPanel({ projectId, isOpen, onClose }: TaskPanelProps) {
     }
   };
 
+  const handleCreateNode = async (task: TaskItem) => {
+    const nodeType = inferNodeType(task);
+    const seedPosition = nodes.length
+      ? {
+          x: nodes[nodes.length - 1].position.x + 360,
+          y: nodes[nodes.length - 1].position.y + 60,
+        }
+      : { x: 0, y: 0 };
+
+    const newNodeId = addNode(nodeType, seedPosition);
+    updateNodeData(newNodeId, taskToNodeData(task, nodeType));
+
+    try {
+      await linkTaskToNode(task.id, newNodeId, nodeType);
+      setTasks((prev) =>
+        prev.map((item) =>
+          item.id === task.id
+            ? { ...item, node_id: newNodeId, node_type: nodeType, link_confidence: 1 }
+            : item
+        )
+      );
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to link task to created node.');
+    }
+
+    await persistCanvasNow();
+    onClose();
+    setSidebarNodeId(newNodeId);
+  };
+
   return (
     <div
       className={`fixed left-0 top-0 z-30 h-screen w-96 border-r border-white/10 bg-slate-900 transition-transform duration-300 ease-in-out ${
@@ -423,6 +487,20 @@ export function TaskPanel({ projectId, isOpen, onClose }: TaskPanelProps) {
                             {Math.round(task.link_confidence * 100)}%
                           </span>
                         )}
+                      </div>
+                    )}
+                    {!task.node_id && (
+                      <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-400">
+                        <span className="rounded border border-slate-600/40 bg-slate-800/70 px-2 py-0.5 text-slate-300">
+                          unlinked
+                        </span>
+                        <button
+                          type="button"
+                          className="text-emerald-300 hover:text-emerald-200 underline underline-offset-2"
+                          onClick={() => void handleCreateNode(task)}
+                        >
+                          Create node
+                        </button>
                       </div>
                     )}
                   </div>

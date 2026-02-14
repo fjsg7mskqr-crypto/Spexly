@@ -6,6 +6,7 @@ import { NodeWrapper } from './NodeWrapper';
 import { AIContextIndicator } from './AIContextIndicator';
 import { useCanvasStore } from '@/store/canvasStore';
 import { enhanceScreenWithAI } from '@/app/actions/enhanceNodeWithAI';
+import { showError } from '@/store/toastStore';
 import type { ScreenNode as ScreenNodeType } from '@/types/nodes';
 
 const inputClass =
@@ -75,10 +76,10 @@ function ScreenNodeComponent({ id, data }: NodeProps<ScreenNodeType>) {
         updateNodeData(id, updates);
         setShowAiContext(true); // Expand to show generated content
       } else {
-        alert(`Failed to generate AI context: ${result.error || 'Unknown error'}`);
+        showError(result.error || 'Failed to generate AI context');
       }
     } catch (error) {
-      alert(`Error: ${error instanceof Error ? error.message : 'Failed to generate AI context'}`);
+      showError(error instanceof Error ? error.message : 'Failed to generate AI context');
     } finally {
       setIsGenerating(false);
     }

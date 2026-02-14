@@ -1,8 +1,8 @@
 {
   "planVersion": "1.0.0",
   "project": "Spexly",
-  "generatedAt": "2026-02-13",
-  "status": "ready_for_execution",
+  "generatedAt": "2026-02-14",
+  "status": "in_progress",
   "goal": "Deploy Spexly to Vercel with Supabase-backed automation (task ingest + auto-link + node autofill).",
   "environments": {
     "local": {
@@ -207,7 +207,7 @@
           "id": "p6_t1",
           "title": "Run quality gates locally before deploy",
           "owner": "maintainer",
-          "done": false,
+          "done": true,
           "commands": [
             "npm run lint",
             "npm run type-check",

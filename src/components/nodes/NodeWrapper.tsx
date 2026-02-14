@@ -5,6 +5,7 @@ import { Handle, Position } from '@xyflow/react';
 import { ChevronRight, Trash2, Check, PanelLeftOpen } from 'lucide-react';
 import { useCanvasStore } from '@/store/canvasStore';
 import { NODE_TYPE_CONFIGS } from '@/lib/constants';
+import { showUndo } from '@/store/toastStore';
 import type { SpexlyNodeType } from '@/types/nodes';
 
 interface NodeWrapperProps {
@@ -150,6 +151,9 @@ function NodeWrapperInner({
           onClick={(e) => {
             e.stopPropagation();
             deleteNode(id);
+            showUndo(`Deleted ${headerLabel || config.label}`, () => {
+              useCanvasStore.getState().undo();
+            });
           }}
         >
           <Trash2 size={16} />

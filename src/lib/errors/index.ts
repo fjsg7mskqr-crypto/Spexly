@@ -114,22 +114,19 @@ function serializeUnknownError(error: unknown): string {
  * In production, this should integrate with error tracking service (Sentry, etc.)
  */
 export function logError(error: unknown, context?: ErrorContext): void {
-  // In development, log to console
-  if (process.env.NODE_ENV === 'development') {
-    console.error('Error occurred:', {
-      error: serializeUnknownError(error),
-      rawError: error,
-      stack: error instanceof Error ? error.stack : undefined,
-      context,
-      timestamp: new Date().toISOString(),
-    });
-  }
+  const entry = {
+    error: serializeUnknownError(error),
+    stack: error instanceof Error ? error.stack : undefined,
+    context,
+    timestamp: new Date().toISOString(),
+  };
 
-  // In production, send to error tracking service
-  // TODO: Integrate with Sentry or similar service
-  // if (process.env.NODE_ENV === 'production') {
-  //   Sentry.captureException(error, { contexts: { custom: context } });
-  // }
+  if (process.env.NODE_ENV === 'development') {
+    console.error('Error occurred:', { ...entry, rawError: error });
+  } else {
+    // Structured production logging (captured by Vercel log drain)
+    console.error(JSON.stringify(entry));
+  }
 }
 
 /**

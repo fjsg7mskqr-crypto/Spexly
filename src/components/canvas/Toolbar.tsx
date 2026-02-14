@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, BarChart3, CheckSquare, Cloud, CloudOff, FileText, LayoutGrid, Loader2, RotateCcw, Sparkles } from 'lucide-react';
+import { ArrowLeft, BarChart3, CheckSquare, Cloud, CloudOff, FileText, Keyboard, LayoutGrid, Loader2, Redo2, RotateCcw, Sparkles, Undo2 } from 'lucide-react';
 import { useCanvasStore } from '@/store/canvasStore';
 import { AddNodeMenu } from './AddNodeMenu';
 import { ExportMenu } from './ExportMenu';
@@ -15,6 +15,7 @@ interface ToolbarProps {
   onOpenTemplates: () => void;
   onResetLayout: () => void;
   onOpenBatchEnhance: () => void;
+  onToggleShortcuts: () => void;
 }
 
 function SaveStatus() {
@@ -50,6 +51,34 @@ function SaveStatus() {
   );
 }
 
+function UndoRedoButtons() {
+  const undo = useCanvasStore((s) => s.undo);
+  const redo = useCanvasStore((s) => s.redo);
+  const hasPast = useCanvasStore((s) => s.past.length > 0);
+  const hasFuture = useCanvasStore((s) => s.future.length > 0);
+
+  return (
+    <div className="flex items-center gap-0.5 border-r border-white/10 pr-2 mr-1">
+      <button
+        onClick={undo}
+        disabled={!hasPast}
+        title="Undo (Cmd+Z)"
+        className="flex items-center justify-center rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-700 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-400"
+      >
+        <Undo2 size={16} />
+      </button>
+      <button
+        onClick={redo}
+        disabled={!hasFuture}
+        title="Redo (Cmd+Shift+Z)"
+        className="flex items-center justify-center rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-700 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-400"
+      >
+        <Redo2 size={16} />
+      </button>
+    </div>
+  );
+}
+
 export function Toolbar({
   isDashboardOpen,
   isTaskPanelOpen,
@@ -59,6 +88,7 @@ export function Toolbar({
   onOpenTemplates,
   onResetLayout,
   onOpenBatchEnhance,
+  onToggleShortcuts,
 }: ToolbarProps) {
   const projectName = useCanvasStore((s) => s.projectName);
 
@@ -81,12 +111,13 @@ export function Toolbar({
         <SaveStatus />
       </div>
       <div className="flex items-center gap-2">
+        <UndoRedoButtons />
         <button
           onClick={onOpenImport}
           className="flex items-center gap-2 rounded-lg border border-white/10 bg-slate-800 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-slate-700"
         >
           <FileText size={16} />
-          Import
+          <span className="hidden lg:inline">Import</span>
         </button>
         <button
           onClick={onToggleDashboard}
@@ -97,7 +128,7 @@ export function Toolbar({
           }`}
         >
           <BarChart3 size={16} />
-          Stats
+          <span className="hidden lg:inline">Stats</span>
         </button>
         <button
           onClick={onToggleTaskPanel}
@@ -108,31 +139,38 @@ export function Toolbar({
           }`}
         >
           <CheckSquare size={16} />
-          Tasks
+          <span className="hidden lg:inline">Tasks</span>
         </button>
         <button
           onClick={onResetLayout}
           className="flex items-center gap-2 rounded-lg border border-white/10 bg-slate-800 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-slate-700"
         >
           <RotateCcw size={16} />
-          Reset layout
+          <span className="hidden xl:inline">Reset layout</span>
         </button>
         <button
           onClick={onOpenTemplates}
           className="flex items-center gap-2 rounded-lg border border-white/10 bg-slate-800 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-slate-700"
         >
           <LayoutGrid size={16} />
-          Templates
+          <span className="hidden xl:inline">Templates</span>
         </button>
         <button
           onClick={onOpenBatchEnhance}
           className="flex items-center gap-2 rounded-lg border border-violet-400/50 bg-violet-400/10 px-3 py-1.5 text-sm font-medium text-violet-300 transition-colors hover:bg-violet-400/20"
         >
           <Sparkles size={16} />
-          Enhance All
+          <span className="hidden lg:inline">Enhance All</span>
         </button>
         <ExportMenu />
         <AddNodeMenu />
+        <button
+          onClick={onToggleShortcuts}
+          title="Keyboard shortcuts (?)"
+          className="flex items-center justify-center rounded-lg border border-white/10 bg-slate-800 p-1.5 text-slate-400 transition-colors hover:bg-slate-700 hover:text-white"
+        >
+          <Keyboard size={16} />
+        </button>
       </div>
     </div>
   );

@@ -5,6 +5,8 @@ import { type NodeProps } from '@xyflow/react';
 import { NodeWrapper } from './NodeWrapper';
 import { useCanvasStore } from '@/store/canvasStore';
 import { breakdownPrompt } from '@/app/actions/breakdownPrompt';
+import { syncPromptBreakdownTasks } from '@/app/actions/tasks';
+import { showError } from '@/store/toastStore';
 import type { PromptNode as PromptNodeType, TargetTool } from '@/types/nodes';
 
 const inputClass =
@@ -12,6 +14,7 @@ const inputClass =
 
 function PromptNodeComponent({ id, data }: NodeProps<PromptNodeType>) {
   const updateNodeData = useCanvasStore((s) => s.updateNodeData);
+  const projectId = useCanvasStore((s) => s.projectId);
   const [isBreakingDown, setIsBreakingDown] = useState(false);
 
   const breakdown = Array.isArray(data.breakdown) ? data.breakdown : [];
@@ -23,11 +26,14 @@ function PromptNodeComponent({ id, data }: NodeProps<PromptNodeType>) {
       const result = await breakdownPrompt(data.promptText);
       if (result.success && result.breakdown) {
         updateNodeData(id, { breakdown: result.breakdown });
+        if (projectId) {
+          await syncPromptBreakdownTasks(projectId, id, 'prompt', result.breakdown, data.targetTool);
+        }
       } else {
-        alert(`Failed to break down prompt: ${result.error || 'Unknown error'}`);
+        showError(result.error || 'Failed to break down prompt');
       }
     } catch (error) {
-      alert(`Error: ${error instanceof Error ? error.message : 'Failed to break down prompt'}`);
+      showError(error instanceof Error ? error.message : 'Failed to break down prompt');
     } finally {
       setIsBreakingDown(false);
     }
