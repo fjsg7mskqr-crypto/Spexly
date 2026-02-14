@@ -109,13 +109,31 @@ export function BatchEnhanceModal({ isOpen, onClose }: BatchEnhanceModalProps) {
 
       const allResults = [...featureResults, ...screenResults];
 
-      // Apply results to store and build final states
+      // Apply results to store, only filling empty fields for main fields
       const finalStates = allStates.map((state) => {
         const result = allResults.find((r) => r.nodeId === state.nodeId);
         if (!result) return { ...state, status: 'failed' as EnhanceStatus, error: 'No result returned' };
 
         if (result.success && result.data) {
-          updateNodeData(result.nodeId, result.data);
+          const node = nodes.find((n) => n.id === result.nodeId);
+          if (node) {
+            const existing = node.data as Record<string, unknown>;
+            const filtered: Record<string, unknown> = {};
+            for (const [key, value] of Object.entries(result.data)) {
+              const current = existing[key];
+              const isEmpty =
+                current === undefined ||
+                current === null ||
+                current === '' ||
+                (Array.isArray(current) && current.length === 0);
+              // Only fill main fields if empty; always update AI-specific fields
+              const aiFields = ['aiContext', 'implementationSteps', 'codeReferences', 'testingRequirements', 'relatedFiles', 'technicalConstraints', 'componentHierarchy'];
+              if (aiFields.includes(key) || isEmpty) {
+                filtered[key] = value;
+              }
+            }
+            updateNodeData(result.nodeId, filtered);
+          }
           return { ...state, status: 'done' as EnhanceStatus };
         }
         return { ...state, status: 'failed' as EnhanceStatus, error: result.error };

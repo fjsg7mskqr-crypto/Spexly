@@ -51,12 +51,28 @@ function ScreenNodeComponent({ id, data }: NodeProps<ScreenNodeType>) {
       });
 
       if (result.success && result.data) {
-        updateNodeData(id, {
-          aiContext: result.data.aiContext,
-          componentHierarchy: result.data.componentHierarchy,
-          codeReferences: result.data.codeReferences,
-          testingRequirements: result.data.testingRequirements,
-        });
+        const updates: Record<string, unknown> = {};
+        // Fill main fields only if currently empty
+        if (!data.purpose?.trim() && result.data.purpose) updates.purpose = result.data.purpose;
+        if (!data.navigation?.trim() && result.data.navigation) updates.navigation = result.data.navigation;
+        if (keyElements.length === 0 && result.data.keyElements.length > 0) {
+          updates.keyElements = result.data.keyElements;
+        }
+        if (userActions.length === 0 && result.data.userActions.length > 0) {
+          updates.userActions = result.data.userActions;
+        }
+        if (states.length === 0 && result.data.states.length > 0) {
+          updates.states = result.data.states;
+        }
+        if (dataSources.length === 0 && result.data.dataSources.length > 0) {
+          updates.dataSources = result.data.dataSources;
+        }
+        // Always update AI-specific fields
+        updates.aiContext = result.data.aiContext;
+        updates.componentHierarchy = result.data.componentHierarchy;
+        updates.codeReferences = result.data.codeReferences;
+        updates.testingRequirements = result.data.testingRequirements;
+        updateNodeData(id, updates);
         setShowAiContext(true); // Expand to show generated content
       } else {
         alert(`Failed to generate AI context: ${result.error || 'Unknown error'}`);

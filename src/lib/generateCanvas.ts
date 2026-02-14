@@ -13,6 +13,7 @@ import type {
   FeatureEffort,
 } from '@/types/nodes';
 import { buildRichPrompt } from '@/lib/prompts/richPromptBuilder';
+import { normalizeFeatureList, normalizeScreenList } from '@/lib/input/normalizeItemList';
 
 export interface GenerateCanvasInput {
   appName?: string;
@@ -94,13 +95,17 @@ function centerPositions(count: number, columnX: number, totalHeight: number): {
 }
 
 export function generateCanvas(input: GenerateCanvasInput): GenerateCanvasOutput {
-  const features = input.features.filter((f) => f.length > 0);
-  const screens = input.screens.filter((s) => s.length > 0);
+  const features = normalizeFeatureList(input.features.join('\n'));
+  const screens = normalizeScreenList(input.screens.join('\n'));
   const techStack = (input.techStack ?? []).filter((item) => item.toolName.length > 0);
   const promptPack = (input.prompts ?? []).filter((item) => item.text.length > 0);
   const promptCount = promptPack.length;
-  const detailedFeatures = (input.featuresDetailed ?? []).filter((item) => item.featureName?.length > 0);
-  const detailedScreens = (input.screensDetailed ?? []).filter((item) => item.screenName?.length > 0);
+  const detailedFeatures = (input.featuresDetailed ?? []).filter(
+    (item) => normalizeFeatureList(item.featureName ?? '').length > 0
+  );
+  const detailedScreens = (input.screensDetailed ?? []).filter(
+    (item) => normalizeScreenList(item.screenName ?? '').length > 0
+  );
 
   const maxItems = Math.max(
     detailedFeatures.length || features.length,

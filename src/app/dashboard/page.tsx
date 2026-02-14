@@ -15,5 +15,10 @@ export default async function DashboardPage() {
   const projects = await getProjects();
   const taskSummaries = await getProjectTaskSummaries(projects.map((project) => project.id));
 
-  return <DashboardLayout projects={projects} userEmail={user.email ?? ''} taskSummaries={taskSummaries} />;
+  const userName =
+    user.user_metadata?.full_name ??
+    user.user_metadata?.name ??
+    (user.email ? user.email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : '');
+
+  return <DashboardLayout projects={projects} userEmail={user.email ?? ''} userName={userName} taskSummaries={taskSummaries} />;
 }

@@ -24,6 +24,13 @@ interface EnhanceScreenInput {
 }
 
 export interface EnhancedFeatureAIContext {
+  summary: string;
+  problem: string;
+  userStory: string;
+  acceptanceCriteria: string[];
+  dependencies: string[];
+  risks: string;
+  metrics: string;
   aiContext: string;
   implementationSteps: string[];
   codeReferences: string[];
@@ -33,6 +40,12 @@ export interface EnhancedFeatureAIContext {
 }
 
 export interface EnhancedScreenAIContext {
+  purpose: string;
+  keyElements: string[];
+  userActions: string[];
+  states: string[];
+  navigation: string;
+  dataSources: string[];
   aiContext: string;
   componentHierarchy: string[];
   testingRequirements: string;
@@ -175,7 +188,7 @@ function buildFeatureEnhancementPrompt(input: EnhanceFeatureInput): string {
       : null,
     input.technicalConstraints ? `Constraints: ${input.technicalConstraints}` : null,
     '',
-    '=== GENERATE IMPLEMENTATION GUIDANCE ===',
+    '=== GENERATE FEATURE DETAILS ===',
     '',
     '=== TECH STACK CONTEXT ===',
     '- Framework: Next.js 15 with App Router (/app directory structure)',
@@ -184,44 +197,48 @@ function buildFeatureEnhancementPrompt(input: EnhanceFeatureInput): string {
     '- Language: TypeScript',
     '- Deployment: Vercel',
     '',
-    'Based on this feature, generate Next.js + Supabase implementation guidance:',
+    'Based on this feature, generate comprehensive details to fill in the feature card:',
     '',
-    '1. AI CONTEXT (2-3 sentences):',
+    '1. SUMMARY (1-2 sentences): Concise description of what this feature does.',
+    '',
+    '2. PROBLEM (1-2 sentences): What user pain point or gap does this solve?',
+    '',
+    '3. USER STORY (1 sentence): "As a [user], I want [goal] so that [benefit]"',
+    '',
+    '4. ACCEPTANCE CRITERIA (3-5 items): Specific conditions that must be met.',
+    '',
+    '5. DEPENDENCIES (1-4 items): Other features, services, or systems this depends on.',
+    '',
+    '6. RISKS (1-2 sentences): Potential issues or unknowns.',
+    '',
+    '7. METRICS (1-2 sentences): How will success be measured?',
+    '',
+    '8. AI CONTEXT (2-3 sentences):',
     '   - Next.js App Router patterns to use (Server Components, Server Actions, Route Handlers)',
     '   - Supabase integration approach (auth, database, storage)',
-    '   - Key technical considerations and gotchas',
+    '   - Key technical considerations',
     '',
-    '2. IMPLEMENTATION STEPS (5-8 steps):',
+    '9. IMPLEMENTATION STEPS (5-8 steps):',
     '   - Use Next.js 15 conventions: /app/[feature]/page.tsx, /app/api/[feature]/route.ts',
-    '   - Reference Supabase Client creation, RLS policies, and auth helpers',
-    '   - Include specific file paths (e.g., "Create /app/api/auth/login/route.ts")',
-    '   - Mention Server Actions where appropriate (e.g., "use server" directive)',
+    '   - Include specific file paths',
     '',
-    '3. CODE REFERENCES (3-5 items):',
-    '   - Supabase patterns: createClient(), auth.signUp(), from("table").select()',
-    '   - Next.js patterns: Suspense boundaries, loading.tsx, error.tsx',
-    '   - Relevant npm packages if needed',
+    '10. CODE REFERENCES (3-5 items): Relevant patterns, libraries, or existing code.',
     '',
-    '4. TESTING REQUIREMENTS (2-3 sentences):',
-    '   - What needs to be tested',
-    '   - Edge cases to cover',
-    '   - Integration vs unit tests',
+    '11. TESTING REQUIREMENTS (2-3 sentences): What needs testing and edge cases.',
     '',
-    '5. RELATED FILES (3-6 file paths):',
-    '   - Use Next.js App Router structure:',
-    '     • Pages: /app/[feature]/page.tsx',
-    '     • API Routes: /app/api/[feature]/route.ts',
-    '     • Server Actions: /app/actions/[feature].ts',
-    '     • Components: /components/[Feature]Component.tsx',
-    '     • Utilities: /lib/[feature]/utils.ts',
+    '12. RELATED FILES (3-6 file paths): Next.js App Router file paths to create/modify.',
     '',
-    '6. TECHNICAL CONSTRAINTS (1-2 sentences):',
-    '   - Supabase RLS (Row Level Security) policies for data protection',
-    '   - Next.js caching strategies (revalidate, cache tags)',
-    '   - Performance: Use Server Components by default, Client Components only when needed',
+    '13. TECHNICAL CONSTRAINTS (1-2 sentences): Platform limitations, performance, RLS policies.',
     '',
     'OUTPUT FORMAT (JSON):',
     '{',
+    '  "summary": string,',
+    '  "problem": string,',
+    '  "userStory": string,',
+    '  "acceptanceCriteria": string[],',
+    '  "dependencies": string[],',
+    '  "risks": string,',
+    '  "metrics": string,',
     '  "aiContext": string,',
     '  "implementationSteps": string[],',
     '  "codeReferences": string[],',
@@ -245,32 +262,38 @@ function buildScreenEnhancementPrompt(input: EnhanceScreenInput): string {
     input.userActions?.length ? `User Actions:\n${input.userActions.map((a) => `  - ${a}`).join('\n')}` : null,
     input.states?.length ? `States:\n${input.states.map((s) => `  - ${s}`).join('\n')}` : null,
     '',
-    '=== GENERATE IMPLEMENTATION GUIDANCE ===',
+    '=== GENERATE SCREEN DETAILS ===',
     '',
-    'Based on this screen, generate:',
+    'Based on this screen, generate comprehensive details to fill in the screen card:',
     '',
-    '1. AI CONTEXT (2-3 sentences):',
-    '   - Component architecture recommendations',
-    '   - State management approach',
-    '   - Accessibility considerations',
+    '1. PURPOSE (1-2 sentences): What is this screen for?',
     '',
-    '2. COMPONENT HIERARCHY (5-8 components):',
-    '   - React component tree structure',
-    '   - Example: <LoginScreen> → <LoginForm> → <EmailInput>',
-    '   - Include container vs presentational components',
+    '2. KEY ELEMENTS (4-8 items): Major UI components on this screen.',
     '',
-    '3. CODE REFERENCES (3-5 items):',
-    '   - Similar UI patterns in codebase',
-    '   - Component library examples',
-    '   - Relevant design system components',
+    '3. USER ACTIONS (3-6 items): What can users do on this screen?',
     '',
-    '4. TESTING REQUIREMENTS (2-3 sentences):',
-    '   - User interaction tests needed',
-    '   - Accessibility testing',
-    '   - Visual regression testing',
+    '4. STATES (2-4 items): Different screen states (e.g., empty, loading, error, success).',
+    '',
+    '5. NAVIGATION (1-2 sentences): How users get to/from this screen.',
+    '',
+    '6. DATA SOURCES (2-4 items): APIs, stores, or data this screen needs.',
+    '',
+    '7. AI CONTEXT (2-3 sentences): Component architecture, state management, accessibility.',
+    '',
+    '8. COMPONENT HIERARCHY (5-8 components): React component tree structure.',
+    '',
+    '9. CODE REFERENCES (3-5 items): Relevant patterns, libraries, or existing components.',
+    '',
+    '10. TESTING REQUIREMENTS (2-3 sentences): User interaction and accessibility tests.',
     '',
     'OUTPUT FORMAT (JSON):',
     '{',
+    '  "purpose": string,',
+    '  "keyElements": string[],',
+    '  "userActions": string[],',
+    '  "states": string[],',
+    '  "navigation": string,',
+    '  "dataSources": string[],',
     '  "aiContext": string,',
     '  "componentHierarchy": string[],',
     '  "codeReferences": string[],',
@@ -288,6 +311,17 @@ function parseFeatureEnhancement(outputText: string): EnhancedFeatureAIContext {
   const parsed = JSON.parse(cleaned);
 
   return {
+    summary: typeof parsed.summary === 'string' ? parsed.summary.slice(0, 400) : '',
+    problem: typeof parsed.problem === 'string' ? parsed.problem.slice(0, 400) : '',
+    userStory: typeof parsed.userStory === 'string' ? parsed.userStory.slice(0, 400) : '',
+    acceptanceCriteria: Array.isArray(parsed.acceptanceCriteria)
+      ? parsed.acceptanceCriteria.slice(0, 10).map((s: string) => s.slice(0, 200))
+      : [],
+    dependencies: Array.isArray(parsed.dependencies)
+      ? parsed.dependencies.slice(0, 8).map((s: string) => s.slice(0, 200))
+      : [],
+    risks: typeof parsed.risks === 'string' ? parsed.risks.slice(0, 400) : '',
+    metrics: typeof parsed.metrics === 'string' ? parsed.metrics.slice(0, 400) : '',
     aiContext: typeof parsed.aiContext === 'string' ? parsed.aiContext.slice(0, 500) : '',
     implementationSteps: Array.isArray(parsed.implementationSteps)
       ? parsed.implementationSteps.slice(0, 10).map((s: string) => s.slice(0, 200))
@@ -308,6 +342,20 @@ function parseScreenEnhancement(outputText: string): EnhancedScreenAIContext {
   const parsed = JSON.parse(cleaned);
 
   return {
+    purpose: typeof parsed.purpose === 'string' ? parsed.purpose.slice(0, 400) : '',
+    keyElements: Array.isArray(parsed.keyElements)
+      ? parsed.keyElements.slice(0, 10).map((s: string) => s.slice(0, 200))
+      : [],
+    userActions: Array.isArray(parsed.userActions)
+      ? parsed.userActions.slice(0, 10).map((s: string) => s.slice(0, 200))
+      : [],
+    states: Array.isArray(parsed.states)
+      ? parsed.states.slice(0, 8).map((s: string) => s.slice(0, 200))
+      : [],
+    navigation: typeof parsed.navigation === 'string' ? parsed.navigation.slice(0, 400) : '',
+    dataSources: Array.isArray(parsed.dataSources)
+      ? parsed.dataSources.slice(0, 8).map((s: string) => s.slice(0, 200))
+      : [],
     aiContext: typeof parsed.aiContext === 'string' ? parsed.aiContext.slice(0, 500) : '',
     componentHierarchy: Array.isArray(parsed.componentHierarchy)
       ? parsed.componentHierarchy.slice(0, 10).map((c: string) => c.slice(0, 200))

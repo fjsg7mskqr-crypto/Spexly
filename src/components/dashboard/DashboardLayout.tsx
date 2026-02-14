@@ -6,25 +6,37 @@ import Image from 'next/image';
 import { Plus, Sparkles, LogOut, Undo2 } from 'lucide-react';
 import { signOut } from '@/lib/supabase/auth-helpers';
 import { createProject, createProjectFromWizard, renameProject, deleteProject } from '@/app/actions/projects';
-import { generateCanvas } from '@/lib/generateCanvas';
-import { getTemplateById, type TemplateId } from '@/lib/templates';
 import { ProjectCard } from './ProjectCard';
 import { ProjectWizard } from '@/components/wizard/ProjectWizard';
 import type { Project } from '@/types/project';
-import type { TargetTool } from '@/types/nodes';
+import type { SpexlyEdge, SpexlyNode } from '@/types/nodes';
 import type { TaskSummary } from '@/app/actions/tasks';
+
+function getGreeting(hour: number): string {
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+}
 
 interface DashboardLayoutProps {
   projects: Project[];
   userEmail: string;
+  userName?: string;
   taskSummaries?: Record<string, TaskSummary>;
 }
 
-export function DashboardLayout({ projects: initialProjects, userEmail, taskSummaries = {} }: DashboardLayoutProps) {
+export function DashboardLayout({ projects: initialProjects, userEmail, userName, taskSummaries = {} }: DashboardLayoutProps) {
   const router = useRouter();
   const [projects, setProjects] = useState(initialProjects);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [greeting, setGreeting] = useState('Your Projects');
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    const firstName = userName?.split(' ')[0];
+    setGreeting(firstName ? `${getGreeting(hour)}, ${firstName}` : getGreeting(hour));
+  }, [userName]);
 
   // Undo delete state
   const [pendingDelete, setPendingDelete] = useState<Project | null>(null);
@@ -63,32 +75,10 @@ export function DashboardLayout({ projects: initialProjects, userEmail, taskSumm
     });
   };
 
-  const handleWizardComplete = (answers: Record<string, string>) => {
+  const handleWizardComplete = (result: { projectName: string; nodes: SpexlyNode[]; edges: SpexlyEdge[] }) => {
     startTransition(async () => {
-      const features = answers.features
-        ?.split(',')
-        .map((f) => f.trim())
-        .filter(Boolean) ?? [];
-      const screens = answers.screens
-        ?.split(',')
-        .map((s) => s.trim())
-        .filter(Boolean) ?? [];
-
-      const template = getTemplateById((answers.templateId ?? 'blank') as TemplateId);
-
-      const { nodes, edges } = generateCanvas({
-        description: answers.description ?? '',
-        targetUser: answers.targetUser ?? '',
-        coreProblem: answers.coreProblem ?? '',
-        features,
-        screens,
-        tool: (answers.tool ?? 'Claude') as TargetTool,
-        techStack: template?.techStack ?? [],
-        prompts: template?.promptPack ?? [],
-      });
-
-      const name = answers.description?.slice(0, 50) || 'New Project';
-      const project = await createProjectFromWizard(name, nodes, edges);
+      const name = result.projectName || 'New Project';
+      const project = await createProjectFromWizard(name, result.nodes, result.edges);
       setIsWizardOpen(false);
       router.push(`/project/${project.id}`);
     });
@@ -157,7 +147,7 @@ export function DashboardLayout({ projects: initialProjects, userEmail, taskSumm
       {/* Main */}
       <main className="mx-auto max-w-6xl px-6 py-8">
         <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-white">Your Projects</h1>
+          <h1 className="text-2xl font-bold text-white">{greeting}</h1>
           <div className="flex items-center gap-3">
             <button
               onClick={handleNewBlankProject}

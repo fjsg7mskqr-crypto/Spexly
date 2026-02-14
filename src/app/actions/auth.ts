@@ -46,7 +46,7 @@ export async function signInAction(email: string, password: string) {
   return data;
 }
 
-export async function signUpAction(email: string, password: string) {
+export async function signUpAction(email: string, password: string, firstName?: string) {
   if (!email || !password) {
     throw new ValidationError('Email and password are required');
   }
@@ -63,6 +63,9 @@ export async function signUpAction(email: string, password: string) {
     password,
     options: {
       emailRedirectTo: `${await getBaseUrl()}/auth/callback`,
+      data: {
+        full_name: firstName,
+      },
     },
   });
 

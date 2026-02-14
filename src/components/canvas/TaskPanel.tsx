@@ -30,6 +30,18 @@ interface AutofillMetadata {
   appendedChunks?: Record<string, string>;
 }
 
+function formatAppliedAt(value: string | undefined): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
 const STATUS_OPTIONS: Array<{ value: TaskStatus; label: string }> = [
   { value: 'todo', label: 'Todo' },
   { value: 'in_progress', label: 'In Progress' },
@@ -346,6 +358,13 @@ export function TaskPanel({ projectId, isOpen, onClose }: TaskPanelProps) {
         <div className="space-y-2">
           {tasks.map((task) => {
             const isUpdating = updatingTaskId === task.id;
+            const metadata =
+              task.metadata && typeof task.metadata === 'object' && !Array.isArray(task.metadata)
+                ? (task.metadata as Record<string, unknown>)
+                : {};
+            const savedAutofill = metadata.autofill as AutofillMetadata | undefined;
+            const autofill = autofillCache[task.id] ?? savedAutofill;
+            const appliedAt = formatAppliedAt(autofill?.appliedAt);
             return (
               <div key={task.id} className="rounded-lg border border-white/10 bg-slate-800/50 p-3">
                 <div className="mb-2 flex items-start gap-2">
@@ -366,6 +385,11 @@ export function TaskPanel({ projectId, isOpen, onClose }: TaskPanelProps) {
                     </div>
                     {task.details && (
                       <div className="mt-1 whitespace-pre-wrap text-xs text-slate-400">{task.details}</div>
+                    )}
+                    {appliedAt && (
+                      <div className="mt-2 inline-flex items-center rounded border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[11px] text-emerald-300">
+                        Applied to node: {appliedAt}
+                      </div>
                     )}
                     {task.node_id && (
                       <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-400">

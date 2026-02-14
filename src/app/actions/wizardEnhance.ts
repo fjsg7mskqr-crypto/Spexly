@@ -207,46 +207,66 @@ function sanitizeCategory(value: unknown): TechCategory {
   return TECH_CATEGORIES.has(value as TechCategory) ? (value as TechCategory) : 'Other';
 }
 
-/**
- * Validates that a feature has minimum quality requirements met.
- * Filters out features that are too sparse or incomplete.
- */
-function validateFeatureQuality(feature: {
+function normalizeFeaturePayload(feature: {
   featureName: string;
   summary: string;
-  acceptanceCriteria: string[];
+  problem: string;
   userStory: string;
-}): boolean {
-  return (
-    feature.featureName.length > 0 &&
-    feature.summary.length > 10 &&
-    Array.isArray(feature.acceptanceCriteria) &&
-    feature.acceptanceCriteria.length >= 2 &&
-    feature.acceptanceCriteria.every((criterion) => criterion.length > 5) &&
-    feature.userStory.length > 15
-  );
+  acceptanceCriteria: string[];
+  priority: FeaturePriority;
+  status: FeatureStatus;
+  effort: FeatureEffort;
+  dependencies: string[];
+  risks: string;
+  metrics: string;
+  notes: string;
+  aiContext: string;
+  implementationSteps: string[];
+  codeReferences: string[];
+  testingRequirements: string;
+  relatedFiles: string[];
+  technicalConstraints: string;
+}) {
+  const hasMeaningfulContent =
+    feature.summary.length > 0 ||
+    feature.problem.length > 0 ||
+    feature.userStory.length > 0 ||
+    feature.acceptanceCriteria.length > 0 ||
+    feature.dependencies.length > 0 ||
+    feature.implementationSteps.length > 0 ||
+    feature.testingRequirements.length > 0;
+
+  return {
+    ...feature,
+    summary: feature.summary || (hasMeaningfulContent ? '' : `Implement ${feature.featureName}`),
+    userStory: feature.userStory || '',
+    acceptanceCriteria: feature.acceptanceCriteria,
+  };
 }
 
-/**
- * Validates that a screen has minimum quality requirements met.
- * Filters out screens that lack sufficient detail.
- */
-function validateScreenQuality(screen: {
+function normalizeScreenPayload(screen: {
   screenName: string;
+  purpose: string;
   keyElements: string[];
   userActions: string[];
   states: string[];
-}): boolean {
-  return (
-    screen.screenName.length > 0 &&
-    Array.isArray(screen.keyElements) &&
-    screen.keyElements.length >= 4 &&
-    screen.keyElements.every((element) => element.length > 2) &&
-    Array.isArray(screen.userActions) &&
-    screen.userActions.length >= 3 &&
-    Array.isArray(screen.states) &&
-    screen.states.length >= 2
-  );
+  navigation: string;
+  dataSources: string[];
+  wireframeUrl: string;
+  notes: string;
+  aiContext: string;
+  acceptanceCriteria: string[];
+  componentHierarchy: string[];
+  codeReferences: string[];
+  testingRequirements: string;
+}) {
+  return {
+    ...screen,
+    purpose: screen.purpose || '',
+    keyElements: screen.keyElements,
+    userActions: screen.userActions,
+    states: screen.states,
+  };
 }
 
 function buildPrompt(input: WizardEnhanceInput): string {
@@ -566,7 +586,8 @@ export async function enhanceWizardAnswers(input: WizardEnhanceInput): Promise<W
             relatedFiles: Array.isArray(item.relatedFiles) ? clampList(item.relatedFiles as string[], 10) : [],
             technicalConstraints: typeof item.technicalConstraints === 'string' ? clampText(item.technicalConstraints) : '',
           }))
-          .filter((item) => item.featureName && validateFeatureQuality(item))
+          .filter((item) => item.featureName)
+          .map(normalizeFeaturePayload)
           .slice(0, MAX_FEATURES)
       : [];
 
@@ -592,7 +613,8 @@ export async function enhanceWizardAnswers(input: WizardEnhanceInput): Promise<W
             codeReferences: Array.isArray(item.codeReferences) ? clampList(item.codeReferences as string[], 8) : [],
             testingRequirements: typeof item.testingRequirements === 'string' ? clampText(item.testingRequirements) : '',
           }))
-          .filter((item) => item.screenName && validateScreenQuality(item))
+          .filter((item) => item.screenName)
+          .map(normalizeScreenPayload)
           .slice(0, MAX_SCREENS)
       : [];
 

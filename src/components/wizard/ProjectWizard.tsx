@@ -9,10 +9,11 @@ import { DEFAULT_TEMPLATE_ID, TEMPLATE_OPTIONS, getTemplateById, type TemplateId
 import { enhanceWizardAnswers, type WizardEnhanceOutput } from '@/app/actions/wizardEnhance';
 import { StepIndicator } from './StepIndicator';
 import { WizardStep } from './WizardStep';
-import type { TargetTool, SpexlyNode } from '@/types/nodes';
+import type { TargetTool, SpexlyEdge, SpexlyNode } from '@/types/nodes';
 import { formatErrorForClient } from '@/lib/errors';
 import { getPopulatedFields, buildFieldUpdate } from '@/lib/import/mergeStrategy';
 import { matchExtractedToExisting } from '@/lib/import/fuzzyMatcher';
+import { normalizeFeatureList, normalizeScreenList } from '@/lib/input/normalizeItemList';
 import type { ExistingNodeSummary, NodeFieldUpdate, SpexlyNodeType } from '@/types/nodes';
 
 interface ExtractedItem {
@@ -23,7 +24,7 @@ interface ExtractedItem {
 interface ProjectWizardProps {
   isOpen: boolean;
   onClose: () => void;
-  onComplete?: (answers: Record<string, string>) => void;
+  onComplete?: (result: { projectName: string; nodes: SpexlyNode[]; edges: SpexlyEdge[] }) => void;
 }
 
 interface WizardAnswers {
@@ -110,31 +111,13 @@ export function ProjectWizard({ isOpen, onClose, onComplete }: ProjectWizardProp
 
   function handleGenerate() {
     const template = getTemplateById(answers.templateId);
-
-    if (onComplete) {
-      // Dashboard flow: pass answers back to parent
-      onComplete({
-        ...(answers as unknown as Record<string, string>),
-        templateId: answers.templateId,
-      });
-      handleClose();
-      return;
-    }
-
-    // Canvas flow: generate directly into store
-    const parseList = (value: string) =>
-      value
-        .split(/[\n,;]/)
-        .map((s) => s.trim())
-        .filter(Boolean);
-
     const input = {
       appName: enhancedData?.idea.appName || answers.appName,
       description: enhancedData?.idea.description || answers.description,
       targetUser: enhancedData?.idea.targetUser || answers.targetUser,
       coreProblem: enhancedData?.idea.coreProblem || answers.coreProblem,
-      features: parseList(answers.features),
-      screens: parseList(answers.screens),
+      features: normalizeFeatureList(answers.features),
+      screens: normalizeScreenList(answers.screens),
       featuresDetailed: enhancedData?.features,
       screensDetailed: enhancedData?.screens,
       tool: answers.tool,
@@ -143,6 +126,15 @@ export function ProjectWizard({ isOpen, onClose, onComplete }: ProjectWizardProp
     };
 
     const { nodes: newNodes, edges: newEdges } = generateCanvas(input);
+
+    if (onComplete) {
+      const projectName = (enhancedData?.idea.appName || answers.appName || answers.description || 'New Project')
+        .trim()
+        .slice(0, 80);
+      onComplete({ projectName, nodes: newNodes, edges: newEdges });
+      handleClose();
+      return;
+    }
 
     // If there are existing nodes, use smart import to fill them instead of replacing
     if (nodes.length > 0) {
@@ -247,19 +239,13 @@ export function ProjectWizard({ isOpen, onClose, onComplete }: ProjectWizardProp
 
     try {
       const template = getTemplateById(answers.templateId);
-      const parseList = (value: string) =>
-        value
-          .split(/[\n,;]/)
-          .map((s) => s.trim())
-          .filter(Boolean);
-
       const result = await enhanceWizardAnswers({
         appName: answers.appName,
         description: answers.description,
         targetUser: answers.targetUser,
         coreProblem: answers.coreProblem,
-        features: parseList(answers.features),
-        screens: parseList(answers.screens),
+        features: normalizeFeatureList(answers.features),
+        screens: normalizeScreenList(answers.screens),
         tool: answers.tool,
         templateName: template?.label,
         templateFeatures: template?.features ?? [],

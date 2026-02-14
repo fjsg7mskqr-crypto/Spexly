@@ -13,9 +13,10 @@ describe('SignUpForm', () => {
     vi.clearAllMocks()
   })
 
-  it('renders email, password, and confirm password inputs', () => {
+  it('renders first name, email, password, and confirm password inputs', () => {
     render(<SignUpForm />)
 
+    expect(screen.getByLabelText('First Name')).toBeInTheDocument()
     expect(screen.getByLabelText('Email')).toBeInTheDocument()
     expect(screen.getByLabelText('Password')).toBeInTheDocument()
     expect(screen.getByLabelText('Confirm Password')).toBeInTheDocument()
@@ -32,6 +33,7 @@ describe('SignUpForm', () => {
 
     render(<SignUpForm />)
 
+    await user.type(screen.getByLabelText('First Name'), 'Jane')
     await user.type(screen.getByLabelText('Email'), 'test@example.com')
     await user.type(screen.getByLabelText('Password'), 'Password123!')
     await user.type(screen.getByLabelText('Confirm Password'), 'Different123!')
@@ -53,6 +55,7 @@ describe('SignUpForm', () => {
     const passwordInput = screen.getByLabelText('Password')
     const confirmInput = screen.getByLabelText('Confirm Password')
 
+    await user.type(screen.getByLabelText('First Name'), 'Jane')
     await user.type(emailInput, 'test@example.com')
 
     // Fill password fields by setting value directly to bypass browser minLength validation
@@ -77,19 +80,20 @@ describe('SignUpForm', () => {
     expect(mockSignUpAction).not.toHaveBeenCalled()
   })
 
-  it('calls signUp with email and password on valid submission', async () => {
+  it('calls signUp with email, password, and first name on valid submission', async () => {
     const user = userEvent.setup()
     mockSignUpAction.mockResolvedValue({ user: { id: '1' } })
 
     render(<SignUpForm />)
 
+    await user.type(screen.getByLabelText('First Name'), 'Jane')
     await user.type(screen.getByLabelText('Email'), 'test@example.com')
     await user.type(screen.getByLabelText('Password'), 'Password123!')
     await user.type(screen.getByLabelText('Confirm Password'), 'Password123!')
     await user.click(screen.getByRole('button', { name: 'Sign Up' }))
 
     await waitFor(() => {
-      expect(mockSignUpAction).toHaveBeenCalledWith('test@example.com', 'Password123!')
+      expect(mockSignUpAction).toHaveBeenCalledWith('test@example.com', 'Password123!', 'Jane')
     })
   })
 
@@ -99,6 +103,7 @@ describe('SignUpForm', () => {
 
     render(<SignUpForm />)
 
+    await user.type(screen.getByLabelText('First Name'), 'Jane')
     await user.type(screen.getByLabelText('Email'), 'test@example.com')
     await user.type(screen.getByLabelText('Password'), 'Password123!')
     await user.type(screen.getByLabelText('Confirm Password'), 'Password123!')
@@ -115,6 +120,7 @@ describe('SignUpForm', () => {
 
     render(<SignUpForm />)
 
+    await user.type(screen.getByLabelText('First Name'), 'Jane')
     await user.type(screen.getByLabelText('Email'), 'test@example.com')
     await user.type(screen.getByLabelText('Password'), 'Password123!')
     await user.type(screen.getByLabelText('Confirm Password'), 'Password123!')
@@ -131,6 +137,7 @@ describe('SignUpForm', () => {
 
     render(<SignUpForm />)
 
+    await user.type(screen.getByLabelText('First Name'), 'Jane')
     await user.type(screen.getByLabelText('Email'), 'test@example.com')
     await user.type(screen.getByLabelText('Password'), 'Password123!')
     await user.type(screen.getByLabelText('Confirm Password'), 'Password123!')

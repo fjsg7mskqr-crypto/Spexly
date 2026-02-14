@@ -245,14 +245,27 @@ function FeatureFields({
         technicalConstraints: data.technicalConstraints,
       });
       if (result.success && result.data) {
-        update(id, {
-          aiContext: result.data.aiContext,
-          implementationSteps: result.data.implementationSteps,
-          codeReferences: result.data.codeReferences,
-          testingRequirements: result.data.testingRequirements,
-          relatedFiles: result.data.relatedFiles,
-          technicalConstraints: result.data.technicalConstraints,
-        });
+        const updates: Record<string, unknown> = {};
+        // Fill main fields only if currently empty
+        if (!data.summary?.trim() && result.data.summary) updates.summary = result.data.summary;
+        if (!data.problem?.trim() && result.data.problem) updates.problem = result.data.problem;
+        if (!data.userStory?.trim() && result.data.userStory) updates.userStory = result.data.userStory;
+        if (!data.risks?.trim() && result.data.risks) updates.risks = result.data.risks;
+        if (!data.metrics?.trim() && result.data.metrics) updates.metrics = result.data.metrics;
+        if (acceptanceCriteria.length === 0 && result.data.acceptanceCriteria.length > 0) {
+          updates.acceptanceCriteria = result.data.acceptanceCriteria;
+        }
+        if (dependencies.length === 0 && result.data.dependencies.length > 0) {
+          updates.dependencies = result.data.dependencies;
+        }
+        // Always update AI-specific fields
+        updates.aiContext = result.data.aiContext;
+        updates.implementationSteps = result.data.implementationSteps;
+        updates.codeReferences = result.data.codeReferences;
+        updates.testingRequirements = result.data.testingRequirements;
+        updates.relatedFiles = result.data.relatedFiles;
+        updates.technicalConstraints = result.data.technicalConstraints;
+        update(id, updates);
         setShowAi(true);
       } else {
         alert(`Failed: ${result.error || 'Unknown error'}`);
@@ -405,12 +418,28 @@ function ScreenFields({
         states,
       });
       if (result.success && result.data) {
-        update(id, {
-          aiContext: result.data.aiContext,
-          componentHierarchy: result.data.componentHierarchy,
-          codeReferences: result.data.codeReferences,
-          testingRequirements: result.data.testingRequirements,
-        });
+        const updates: Record<string, unknown> = {};
+        // Fill main fields only if currently empty
+        if (!data.purpose?.trim() && result.data.purpose) updates.purpose = result.data.purpose;
+        if (!data.navigation?.trim() && result.data.navigation) updates.navigation = result.data.navigation;
+        if (keyElements.length === 0 && result.data.keyElements.length > 0) {
+          updates.keyElements = result.data.keyElements;
+        }
+        if (userActions.length === 0 && result.data.userActions.length > 0) {
+          updates.userActions = result.data.userActions;
+        }
+        if (states.length === 0 && result.data.states.length > 0) {
+          updates.states = result.data.states;
+        }
+        if (dataSources.length === 0 && result.data.dataSources.length > 0) {
+          updates.dataSources = result.data.dataSources;
+        }
+        // Always update AI-specific fields
+        updates.aiContext = result.data.aiContext;
+        updates.componentHierarchy = result.data.componentHierarchy;
+        updates.codeReferences = result.data.codeReferences;
+        updates.testingRequirements = result.data.testingRequirements;
+        update(id, updates);
         setShowAi(true);
       } else {
         alert(`Failed: ${result.error || 'Unknown error'}`);

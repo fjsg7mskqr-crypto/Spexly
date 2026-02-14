@@ -21,9 +21,58 @@ describe('buildNodeAutofillUpdate', () => {
     });
 
     expect(update.featureName).toBe('Authentication');
-    expect(update.summary).toContain('Add signup');
+    expect(update.summary).toBeUndefined();
     expect(update.implementationSteps).toEqual(['Add signup', 'Add login']);
     expect(String(update.notes)).toContain('Task: Authentication');
+  });
+
+  it('maps structured feature sections into existing feature fields', () => {
+    const node = makeNode('feature', {
+      featureName: 'Auth',
+      summary: '',
+      problem: '',
+      userStory: '',
+      acceptanceCriteria: [],
+      dependencies: [],
+      risks: '',
+      metrics: '',
+      aiContext: '',
+      codeReferences: [],
+      testingRequirements: '',
+      relatedFiles: [],
+      technicalConstraints: '',
+      notes: '',
+    });
+
+    const update = buildNodeAutofillUpdate(node, {
+      title: 'Feature: Authentication',
+      details: [
+        'Summary: Secure sign-in and account creation flow.',
+        'Problem: Users need private project access.',
+        'User Story: As a user, I want to log in securely.',
+        'Acceptance Criteria:',
+        '- Users can sign up with email and password',
+        '- Users can log in with valid credentials',
+        'Dependencies:',
+        '- User table migration',
+        'AI Context: Use Next.js server actions and Supabase auth.',
+        'Code References:',
+        '- /app/login/page.tsx',
+        'Testing Requirements: Cover happy path and auth failures.',
+      ].join('\n'),
+    });
+
+    expect(update.summary).toContain('Secure sign-in');
+    expect(update.problem).toContain('private project access');
+    expect(update.userStory).toContain('log in securely');
+    expect(update.acceptanceCriteria).toEqual([
+      'Users can sign up with email and password',
+      'Users can log in with valid credentials',
+    ]);
+    expect(update.dependencies).toEqual(['User table migration']);
+    expect(update.aiContext).toContain('server actions');
+    expect(update.codeReferences).toEqual(['/app/login/page.tsx']);
+    expect(update.testingRequirements).toContain('happy path');
   });
 
   it('fills screen purpose when empty', () => {
@@ -33,7 +82,7 @@ describe('buildNodeAutofillUpdate', () => {
       details: 'Main analytics and KPI summary screen.',
     });
 
-    expect(update.purpose).toBe('Main analytics and KPI summary screen.');
+    expect(update.purpose).toBeUndefined();
   });
 
   it('fills tech stack tool name when empty', () => {
@@ -55,5 +104,38 @@ describe('buildNodeAutofillUpdate', () => {
     });
 
     expect(update.coreProblem).toBe('Users drop off before activating their account.');
+  });
+
+  it('never returns ad-hoc fields that are not part of node schema', () => {
+    const node = makeNode('screen', { screenName: '', purpose: '', notes: '' });
+    const update = buildNodeAutofillUpdate(node, {
+      title: 'Screen: Dashboard',
+      details: 'Context: Should not create a raw "context" key',
+    });
+
+    expect(Object.prototype.hasOwnProperty.call(update, 'context')).toBe(false);
+  });
+
+  it('does not copy the same unstructured blob into multiple fields', () => {
+    const details = 'Random paragraph without section headings.\nAnother line.';
+    const node = makeNode('feature', {
+      featureName: '',
+      summary: '',
+      notes: '',
+      implementationSteps: [],
+      acceptanceCriteria: [],
+    });
+
+    const update = buildNodeAutofillUpdate(node, {
+      title: 'Feature: Parser hardening',
+      details,
+    });
+
+    expect(update.summary).toBeUndefined();
+    expect(update.implementationSteps).toEqual([
+      'Random paragraph without section headings.',
+      'Another line.',
+    ]);
+    expect(update.notes).toBe('Task: Parser hardening');
   });
 });
