@@ -89,6 +89,26 @@ export interface ErrorContext {
   [key: string]: unknown;
 }
 
+function serializeUnknownError(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  if (error && typeof error === 'object') {
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return '[unserializable-object]';
+    }
+  }
+
+  return String(error);
+}
+
 /**
  * Logs an error with context (server-side only)
  * In production, this should integrate with error tracking service (Sentry, etc.)
@@ -97,7 +117,8 @@ export function logError(error: unknown, context?: ErrorContext): void {
   // In development, log to console
   if (process.env.NODE_ENV === 'development') {
     console.error('Error occurred:', {
-      error: error instanceof Error ? error.message : String(error),
+      error: serializeUnknownError(error),
+      rawError: error,
       stack: error instanceof Error ? error.stack : undefined,
       context,
       timestamp: new Date().toISOString(),

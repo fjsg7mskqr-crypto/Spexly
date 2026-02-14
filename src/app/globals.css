@@ -21,6 +21,21 @@ body {
   font-family: var(--font-geist-sans), sans-serif;
 }
 
+/* ── Landing page background glow ─────────────────── */
+
+@keyframes landing-glow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.landing-glow {
+  animation: landing-glow 8s ease-in-out infinite;
+}
+
 /* ── Node animations ────────────────────────────────── */
 
 @keyframes node-appear {

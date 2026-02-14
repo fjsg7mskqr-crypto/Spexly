@@ -16,6 +16,7 @@ import { Toolbar } from './Toolbar';
 import { DocumentImportModal } from './DocumentImportModal';
 import { TemplatesModal } from './TemplatesModal';
 import { ProgressDashboard } from '@/components/dashboard/ProgressDashboard';
+import { TaskPanel } from '@/components/canvas/TaskPanel';
 import { NodeDetailSidebar } from './NodeDetailSidebar';
 import { BatchEnhanceModal } from './BatchEnhanceModal';
 import { GRID_SNAP, CANVAS_BG_COLOR, CANVAS_DOT_COLOR, EDGE_COLOR } from '@/lib/constants';
@@ -67,8 +68,10 @@ export function Canvas() {
 
   const sidebarNodeId = useCanvasStore((s) => s.sidebarNodeId);
   const setSidebarNodeId = useCanvasStore((s) => s.setSidebarNodeId);
+  const projectId = useCanvasStore((s) => s.projectId);
 
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [isTaskPanelOpen, setIsTaskPanelOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
   const [isBatchEnhanceOpen, setIsBatchEnhanceOpen] = useState(false);
@@ -112,7 +115,9 @@ export function Canvas() {
     <div className="h-screen w-screen" style={{ backgroundColor: CANVAS_BG_COLOR }}>
       <Toolbar
         isDashboardOpen={isDashboardOpen}
+        isTaskPanelOpen={isTaskPanelOpen}
         onToggleDashboard={() => setIsDashboardOpen((prev) => !prev)}
+        onToggleTaskPanel={() => setIsTaskPanelOpen((prev) => !prev)}
         onOpenImport={() => setIsImportOpen(true)}
         onOpenTemplates={() => setIsTemplatesOpen(true)}
         onResetLayout={resetLayout}
@@ -167,6 +172,11 @@ export function Canvas() {
       <ProgressDashboard
         isOpen={isDashboardOpen}
         onClose={() => setIsDashboardOpen(false)}
+      />
+      <TaskPanel
+        projectId={projectId}
+        isOpen={isTaskPanelOpen}
+        onClose={() => setIsTaskPanelOpen(false)}
       />
       <DocumentImportModal isOpen={isImportOpen} onClose={() => setIsImportOpen(false)} />
       <TemplatesModal isOpen={isTemplatesOpen} onClose={() => setIsTemplatesOpen(false)} />

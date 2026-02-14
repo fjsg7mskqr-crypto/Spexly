@@ -1,14 +1,16 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, BarChart3, Cloud, CloudOff, FileText, LayoutGrid, Loader2, RotateCcw, Sparkles } from 'lucide-react';
+import { ArrowLeft, BarChart3, CheckSquare, Cloud, CloudOff, FileText, LayoutGrid, Loader2, RotateCcw, Sparkles } from 'lucide-react';
 import { useCanvasStore } from '@/store/canvasStore';
 import { AddNodeMenu } from './AddNodeMenu';
 import { ExportMenu } from './ExportMenu';
 
 interface ToolbarProps {
   isDashboardOpen: boolean;
+  isTaskPanelOpen: boolean;
   onToggleDashboard: () => void;
+  onToggleTaskPanel: () => void;
   onOpenImport: () => void;
   onOpenTemplates: () => void;
   onResetLayout: () => void;
@@ -50,7 +52,9 @@ function SaveStatus() {
 
 export function Toolbar({
   isDashboardOpen,
+  isTaskPanelOpen,
   onToggleDashboard,
+  onToggleTaskPanel,
   onOpenImport,
   onOpenTemplates,
   onResetLayout,
@@ -94,6 +98,17 @@ export function Toolbar({
         >
           <BarChart3 size={16} />
           Stats
+        </button>
+        <button
+          onClick={onToggleTaskPanel}
+          className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+            isTaskPanelOpen
+              ? 'border-amber-400/50 bg-amber-400/10 text-amber-300'
+              : 'border-white/10 bg-slate-800 text-white hover:bg-slate-700'
+          }`}
+        >
+          <CheckSquare size={16} />
+          Tasks
         </button>
         <button
           onClick={onResetLayout}

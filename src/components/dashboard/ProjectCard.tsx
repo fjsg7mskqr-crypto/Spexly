@@ -2,17 +2,19 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Pencil, Trash2, LayoutGrid, GitFork, Check, X } from 'lucide-react';
+import { Pencil, Trash2, LayoutGrid, GitFork, Check, X, CheckSquare } from 'lucide-react';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
 import type { Project } from '@/types/project';
+import type { TaskSummary } from '@/app/actions/tasks';
 
 interface ProjectCardProps {
   project: Project;
+  taskSummary?: TaskSummary;
   onRename: (id: string, name: string) => void;
   onDelete: (id: string) => void;
 }
 
-export function ProjectCard({ project, onRename, onDelete }: ProjectCardProps) {
+export function ProjectCard({ project, taskSummary, onRename, onDelete }: ProjectCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(project.name);
 
@@ -74,6 +76,12 @@ export function ProjectCard({ project, onRename, onDelete }: ProjectCardProps) {
           <GitFork size={12} />
           {edgeCount} edges
         </span>
+        {taskSummary && taskSummary.total > 0 && (
+          <span className="flex items-center gap-1">
+            <CheckSquare size={12} />
+            {taskSummary.open} open / {taskSummary.total} tasks
+          </span>
+        )}
       </div>
 
       {/* Footer */}

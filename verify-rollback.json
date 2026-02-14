@@ -1,0 +1,11 @@
+[
+  {
+    "title": "Feature: rollback verification",
+    "details": "Add line A\nAdd line B",
+    "status": "todo",
+    "externalRef": "verify-rollback-003",
+    "metadata": {
+      "nodeId": "feature-1770936275498-0"
+    }
+  }
+]

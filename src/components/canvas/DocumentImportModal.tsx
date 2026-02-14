@@ -10,6 +10,7 @@ import type { SpexlyNode } from '@/types/nodes';
 import type { ExistingNodeSummary } from '@/types/nodes';
 import { FileUpload } from '@/components/import/FileUpload';
 import { NotionImport } from '@/components/import/NotionImport';
+import { ConversationImport } from '@/components/import/ConversationImport';
 
 interface DocumentImportModalProps {
   isOpen: boolean;
@@ -38,7 +39,7 @@ function buildExistingNodeSummaries(nodes: SpexlyNode[]): ExistingNodeSummary[] 
     }));
 }
 
-type ImportTab = 'paste' | 'file' | 'notion';
+type ImportTab = 'paste' | 'file' | 'notion' | 'conversation';
 
 export function DocumentImportModal({ isOpen, onClose }: DocumentImportModalProps) {
   const appendNodesAndEdges = useCanvasStore((s) => s.appendNodesAndEdges);
@@ -191,6 +192,16 @@ export function DocumentImportModal({ isOpen, onClose }: DocumentImportModalProp
             >
               Notion
             </button>
+            <button
+              onClick={() => setActiveTab('conversation')}
+              className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+                activeTab === 'conversation'
+                  ? 'border-violet-500 text-violet-400'
+                  : 'border-transparent text-slate-400 hover:text-slate-300'
+              }`}
+            >
+              Conversation
+            </button>
           </div>
 
           {/* Tab Content */}
@@ -216,6 +227,10 @@ export function DocumentImportModal({ isOpen, onClose }: DocumentImportModalProp
 
           {activeTab === 'notion' && (
             <NotionImport onImport={handleFileOrNotionImport} />
+          )}
+
+          {activeTab === 'conversation' && (
+            <ConversationImport onImport={handleFileOrNotionImport} />
           )}
 
         {preview && (

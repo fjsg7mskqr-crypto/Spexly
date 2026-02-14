@@ -1,0 +1,260 @@
+{
+  "planVersion": "1.0.0",
+  "project": "Spexly",
+  "generatedAt": "2026-02-13",
+  "status": "ready_for_execution",
+  "goal": "Deploy Spexly to Vercel with Supabase-backed automation (task ingest + auto-link + node autofill).",
+  "environments": {
+    "local": {
+      "status": "working",
+      "notes": [
+        "Tasks panel is live.",
+        "Conversation import is integrated.",
+        "Agent ingest API exists at /api/agent/ingest.",
+        "Auto-link and Apply-to-node flows are implemented."
+      ]
+    },
+    "production": {
+      "status": "pending_setup",
+      "targetPlatform": "Vercel",
+      "database": "Supabase"
+    }
+  },
+  "phases": [
+    {
+      "id": "phase_1_repo_release",
+      "title": "Repository and Release Prep",
+      "tasks": [
+        {
+          "id": "p1_t1",
+          "title": "Commit current changes",
+          "owner": "maintainer",
+          "done": false
+        },
+        {
+          "id": "p1_t2",
+          "title": "Push branch to GitHub",
+          "owner": "maintainer",
+          "done": false
+        },
+        {
+          "id": "p1_t3",
+          "title": "Confirm branch protection/review policy",
+          "owner": "maintainer",
+          "done": false
+        }
+      ]
+    },
+    {
+      "id": "phase_2_vercel_setup",
+      "title": "Vercel Project Setup",
+      "tasks": [
+        {
+          "id": "p2_t1",
+          "title": "Create/import Vercel project from GitHub repo",
+          "owner": "maintainer",
+          "done": false
+        },
+        {
+          "id": "p2_t2",
+          "title": "Set production domain (when ready)",
+          "owner": "maintainer",
+          "done": false
+        },
+        {
+          "id": "p2_t3",
+          "title": "Set Preview and Production environment variables",
+          "owner": "maintainer",
+          "done": false
+        }
+      ]
+    },
+    {
+      "id": "phase_3_env_vars",
+      "title": "Environment Variables",
+      "tasks": [
+        {
+          "id": "p3_t1",
+          "title": "Configure core Supabase keys",
+          "owner": "maintainer",
+          "done": false,
+          "variables": [
+            "NEXT_PUBLIC_SUPABASE_URL",
+            "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+            "SUPABASE_SERVICE_ROLE_KEY"
+          ]
+        },
+        {
+          "id": "p3_t2",
+          "title": "Configure AI keys/settings",
+          "owner": "maintainer",
+          "done": false,
+          "variables": [
+            "OPENAI_API_KEY",
+            "OPENAI_MODEL",
+            "OPENAI_WIZARD_MODEL",
+            "AI_IMPORT_ENABLED",
+            "AI_IMPORT_FALLBACK_ENABLED",
+            "AI_WIZARD_ENABLED",
+            "AI_AUTO_ENHANCE_ON_IMPORT"
+          ]
+        },
+        {
+          "id": "p3_t3",
+          "title": "Configure ingest security",
+          "owner": "maintainer",
+          "done": false,
+          "variables": [
+            "AGENT_INGEST_SECRET",
+            "SPEXLY_BASE_URL"
+          ],
+          "securityNotes": [
+            "Never expose SUPABASE_SERVICE_ROLE_KEY to client.",
+            "Never expose AGENT_INGEST_SECRET to client."
+          ]
+        },
+        {
+          "id": "p3_t4",
+          "title": "Configure rate limiting backend",
+          "owner": "maintainer",
+          "done": false,
+          "variables": [
+            "UPSTASH_REDIS_REST_URL",
+            "UPSTASH_REDIS_REST_TOKEN"
+          ]
+        },
+        {
+          "id": "p3_t5",
+          "title": "Configure optional Notion integration",
+          "owner": "maintainer",
+          "done": false,
+          "optional": true,
+          "variables": [
+            "NEXT_PUBLIC_NOTION_CLIENT_ID",
+            "NOTION_CLIENT_ID",
+            "NOTION_CLIENT_SECRET",
+            "NOTION_REDIRECT_URI"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase_4_database",
+      "title": "Supabase Database Migrations",
+      "tasks": [
+        {
+          "id": "p4_t1",
+          "title": "Apply existing baseline migrations",
+          "owner": "maintainer",
+          "done": false
+        },
+        {
+          "id": "p4_t2",
+          "title": "Apply task automation migration",
+          "owner": "maintainer",
+          "done": false,
+          "migration": "supabase/migrations/20260213_add_agent_task_automation.sql"
+        },
+        {
+          "id": "p4_t3",
+          "title": "Apply task node linking migration",
+          "owner": "maintainer",
+          "done": false,
+          "migration": "supabase/migrations/20260213_add_task_node_linking.sql"
+        },
+        {
+          "id": "p4_t4",
+          "title": "Verify schema",
+          "owner": "maintainer",
+          "done": false,
+          "verificationQueries": [
+            "select table_name from information_schema.tables where table_schema = 'public' and table_name in ('task_items','agent_ingest_events');",
+            "select column_name from information_schema.columns where table_schema = 'public' and table_name = 'task_items' and column_name in ('node_id','node_type','link_confidence');"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase_5_auth_and_domain",
+      "title": "Auth and Domain Configuration",
+      "tasks": [
+        {
+          "id": "p5_t1",
+          "title": "Set Supabase Auth Site URL to production domain",
+          "owner": "maintainer",
+          "done": false
+        },
+        {
+          "id": "p5_t2",
+          "title": "Set Supabase Auth redirect URLs for production and preview",
+          "owner": "maintainer",
+          "done": false
+        },
+        {
+          "id": "p5_t3",
+          "title": "Set Notion OAuth redirect URL to production callback",
+          "owner": "maintainer",
+          "done": false,
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "phase_6_validation",
+      "title": "Production Validation",
+      "tasks": [
+        {
+          "id": "p6_t1",
+          "title": "Run quality gates locally before deploy",
+          "owner": "maintainer",
+          "done": false,
+          "commands": [
+            "npm run lint",
+            "npm run type-check",
+            "npm run test",
+            "npm run build"
+          ]
+        },
+        {
+          "id": "p6_t2",
+          "title": "Smoke test deployed app",
+          "owner": "maintainer",
+          "done": false,
+          "checks": [
+            "Login/signup works",
+            "Dashboard loads projects",
+            "Project canvas loads and autosaves",
+            "Tasks panel opens and updates status",
+            "Conversation import creates/updates nodes"
+          ]
+        },
+        {
+          "id": "p6_t3",
+          "title": "Smoke test signed ingest API in production",
+          "owner": "maintainer",
+          "done": false,
+          "checks": [
+            "CLI push returns ok",
+            "Tasks appear in target project",
+            "Auto-link badges and Open node button work",
+            "Apply to node updates node fields"
+          ]
+        }
+      ]
+    }
+  ],
+  "operationalRunbook": {
+    "taskIngestCliCommandTemplate": "npm run push:tasks -- --project <PROJECT_ID> --file ./sample-tasks.json --agent codex --url <BASE_URL>",
+    "conversationImportPath": "Project Canvas -> Import -> Conversation tab",
+    "primaryDataFlows": [
+      "conversation -> parser -> markdown -> AI import pipeline -> nodes/edges",
+      "task JSON -> signed ingest API -> task_items -> task panel -> node autofill"
+    ]
+  },
+  "postDeployRecommendations": [
+    "Add Sentry once production traffic starts.",
+    "Add a dedicated ingest API key registry per user/team (instead of one global secret).",
+    "Add ingest rate-limits and per-user quota controls at endpoint level.",
+    "Add dashboard metrics for ingestion success/error rates."
+  ]
+}

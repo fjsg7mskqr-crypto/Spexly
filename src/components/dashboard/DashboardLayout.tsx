@@ -12,13 +12,15 @@ import { ProjectCard } from './ProjectCard';
 import { ProjectWizard } from '@/components/wizard/ProjectWizard';
 import type { Project } from '@/types/project';
 import type { TargetTool } from '@/types/nodes';
+import type { TaskSummary } from '@/app/actions/tasks';
 
 interface DashboardLayoutProps {
   projects: Project[];
   userEmail: string;
+  taskSummaries?: Record<string, TaskSummary>;
 }
 
-export function DashboardLayout({ projects: initialProjects, userEmail }: DashboardLayoutProps) {
+export function DashboardLayout({ projects: initialProjects, userEmail, taskSummaries = {} }: DashboardLayoutProps) {
   const router = useRouter();
   const [projects, setProjects] = useState(initialProjects);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
@@ -195,6 +197,7 @@ export function DashboardLayout({ projects: initialProjects, userEmail }: Dashbo
               <ProjectCard
                 key={project.id}
                 project={project}
+                taskSummary={taskSummaries[project.id]}
                 onRename={handleRename}
                 onDelete={handleDelete}
               />
