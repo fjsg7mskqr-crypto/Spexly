@@ -5,6 +5,7 @@ import { Handle, Position } from '@xyflow/react';
 import { ChevronRight, Trash2, Check, PanelLeftOpen } from 'lucide-react';
 import { useCanvasStore } from '@/store/canvasStore';
 import { NODE_TYPE_CONFIGS } from '@/lib/constants';
+import { TaskSubnodes } from '@/components/canvas/TaskSubnodes';
 import { showUndo } from '@/store/toastStore';
 import type { SpexlyNodeType } from '@/types/nodes';
 
@@ -118,17 +119,32 @@ function NodeWrapperInner({
         />
       </div>
 
+      {!expanded && (
+        <div className="px-3 pb-3 pt-0">
+          <TaskSubnodes
+            nodeId={id}
+            nodeType={type}
+            enabled={!expanded}
+            variant="compact"
+            hideWhenNoActive
+          />
+        </div>
+      )}
+
       {/* Expanded body */}
       <div
         className="overflow-hidden transition-all duration-200 ease-in-out"
         style={{
-          maxHeight: expanded ? '720px' : '0px',
+          maxHeight: expanded ? '920px' : '0px',
           opacity: expanded ? 1 : 0,
         }}
       >
+        <div className="px-4 pb-1 pt-1">
+          <TaskSubnodes nodeId={id} nodeType={type} enabled={expanded} variant="full" />
+        </div>
         <div
           className={`nowheel space-y-3 px-4 pb-4 pt-1 transition-opacity duration-200 ${completed ? 'opacity-50' : ''} overflow-y-auto custom-scrollbar`}
-          style={{ maxHeight: '650px' }}
+          style={{ maxHeight: '500px' }}
         >
           {children}
         </div>

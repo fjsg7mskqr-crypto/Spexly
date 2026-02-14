@@ -2,6 +2,11 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function proxy(request: NextRequest) {
+  // Keep local dev responsive; auth/header proxying can stall when external services are slow.
+  if (process.env.NODE_ENV !== 'production') {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -27,9 +32,28 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
-
   const pathname = request.nextUrl.pathname
+  const needsAuthState =
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/project') ||
+    pathname === '/login' ||
+    pathname === '/signup';
+
+  let user: unknown = null;
+  if (needsAuthState) {
+    try {
+      const authResult = await Promise.race([
+        supabase.auth.getUser(),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500)),
+      ]);
+      if (authResult && typeof authResult === 'object' && 'data' in authResult) {
+        const data = (authResult as { data?: { user?: unknown } }).data;
+        user = data?.user ?? null;
+      }
+    } catch {
+      user = null;
+    }
+  }
 
   // Protected routes: require auth
   if (!user && (pathname.startsWith('/dashboard') || pathname.startsWith('/project'))) {

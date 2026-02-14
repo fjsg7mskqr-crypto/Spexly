@@ -12,6 +12,7 @@ import {
 } from '@xyflow/react';
 
 import { useCanvasStore } from '@/store/canvasStore';
+import { useTaskStore } from '@/store/taskStore';
 import { Toolbar } from './Toolbar';
 import { DocumentImportModal } from './DocumentImportModal';
 import { TemplatesModal } from './TemplatesModal';
@@ -70,6 +71,14 @@ export function Canvas() {
   const sidebarNodeId = useCanvasStore((s) => s.sidebarNodeId);
   const setSidebarNodeId = useCanvasStore((s) => s.setSidebarNodeId);
   const projectId = useCanvasStore((s) => s.projectId);
+  const loadTasks = useTaskStore((s) => s.loadTasks);
+
+  // Batch-load all tasks for the project once
+  useEffect(() => {
+    if (projectId) {
+      void loadTasks(projectId);
+    }
+  }, [projectId, loadTasks]);
 
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isTaskPanelOpen, setIsTaskPanelOpen] = useState(false);

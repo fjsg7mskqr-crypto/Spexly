@@ -10,7 +10,7 @@ import {
 } from '@/lib/errors';
 
 export type TaskStatus = 'todo' | 'in_progress' | 'done' | 'blocked';
-type LinkableNodeType = 'idea' | 'feature' | 'screen' | 'techStack' | 'prompt' | 'note';
+export type LinkableNodeType = 'idea' | 'feature' | 'screen' | 'techStack' | 'prompt' | 'note';
 
 export interface TaskItem {
   id: string;
@@ -34,6 +34,18 @@ export interface TaskSummary {
   total: number;
   open: number;
   done: number;
+}
+
+interface CreateTaskInput {
+  projectId: string;
+  nodeId: string;
+  nodeType: LinkableNodeType;
+  title: string;
+  details?: string | null;
+  status?: TaskStatus;
+  source?: string;
+  sourceAgent?: string;
+  metadata?: Record<string, unknown>;
 }
 
 const LINKABLE_NODE_TYPES = new Set<LinkableNodeType>([
@@ -150,6 +162,124 @@ export async function getProjectTasks(projectId: string): Promise<TaskItem[]> {
   }
 }
 
+export async function getNodeTasks(projectId: string, nodeId: string): Promise<TaskItem[]> {
+  try {
+    if (!projectId?.trim()) {
+      throw new ValidationError('Project ID is required.');
+    }
+    if (!nodeId?.trim()) {
+      throw new ValidationError('Node ID is required.');
+    }
+
+    const userId = await getAuthUserId();
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('task_items')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('project_id', projectId)
+      .eq('node_id', nodeId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      if (isMissingTaskTableError(error)) {
+        return [];
+      }
+      logError(error, { action: 'getNodeTasks', userId, projectId, nodeId });
+      throw new DatabaseError('Failed to fetch node tasks.');
+    }
+
+    return (data ?? []) as TaskItem[];
+  } catch (error) {
+    if (error instanceof AuthenticationError || error instanceof ValidationError || error instanceof DatabaseError) {
+      throw error;
+    }
+    logError(error, { action: 'getNodeTasks', projectId, nodeId });
+    throw new DatabaseError('Failed to fetch node tasks.');
+  }
+}
+
+export async function createTask(input: CreateTaskInput): Promise<TaskItem> {
+  try {
+    const projectId = input.projectId?.trim();
+    const nodeId = input.nodeId?.trim();
+    const title = input.title?.trim();
+    const details = input.details?.trim() || null;
+    const status = input.status || 'todo';
+
+    if (!projectId) {
+      throw new ValidationError('Project ID is required.');
+    }
+    if (!nodeId) {
+      throw new ValidationError('Node ID is required.');
+    }
+    if (!title) {
+      throw new ValidationError('Task title is required.');
+    }
+    if (!LINKABLE_NODE_TYPES.has(input.nodeType)) {
+      throw new ValidationError('Invalid node type.');
+    }
+    if (!['todo', 'in_progress', 'done', 'blocked'].includes(status)) {
+      throw new ValidationError('Invalid task status.');
+    }
+
+    const userId = await getAuthUserId();
+    const supabase = await createClient();
+
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('id', projectId)
+      .eq('user_id', userId)
+      .single();
+
+    if (projectError || !project) {
+      throw new ValidationError('Project not found.');
+    }
+
+    const row = {
+      user_id: userId,
+      project_id: projectId,
+      node_id: nodeId,
+      node_type: input.nodeType,
+      link_confidence: 1,
+      title: title.slice(0, 180),
+      details: details ? details.slice(0, 3000) : null,
+      status,
+      source: input.source?.trim().slice(0, 64) || 'manual',
+      source_agent: input.sourceAgent?.trim().slice(0, 64) || 'canvas-subnode',
+      external_ref: null,
+      metadata:
+        input.metadata && typeof input.metadata === 'object' && !Array.isArray(input.metadata)
+          ? input.metadata
+          : {},
+    };
+
+    const { data, error } = await supabase
+      .from('task_items')
+      .insert(row)
+      .select('*')
+      .single();
+
+    if (error || !data) {
+      if (isMissingTaskTableError(error)) {
+        throw new ValidationError('Task system is not initialized yet. Run latest database migrations.');
+      }
+      logError(error, { action: 'createTask', userId, projectId, nodeId });
+      throw new DatabaseError('Failed to create task.');
+    }
+
+    return data as TaskItem;
+  } catch (error) {
+    if (error instanceof AuthenticationError || error instanceof ValidationError || error instanceof DatabaseError) {
+      throw error;
+    }
+    logError(error, { action: 'createTask', projectId: input.projectId, nodeId: input.nodeId });
+    throw new DatabaseError('Failed to create task.');
+  }
+}
+
 export async function deleteTask(taskId: string): Promise<void> {
   try {
     if (!taskId?.trim()) {
@@ -213,6 +343,59 @@ export async function updateTaskStatus(taskId: string, status: TaskStatus): Prom
     }
     logError(error, { action: 'updateTaskStatus', taskId });
     throw new DatabaseError('Failed to update task status.');
+  }
+}
+
+export async function updateTaskContent(
+  taskId: string,
+  updates: { title?: string; details?: string | null }
+): Promise<void> {
+  try {
+    if (!taskId?.trim()) {
+      throw new ValidationError('Task ID is required.');
+    }
+
+    const nextTitle = typeof updates.title === 'string' ? updates.title.trim().slice(0, 180) : undefined;
+    const nextDetails =
+      typeof updates.details === 'string'
+        ? updates.details.trim().slice(0, 3000)
+        : updates.details === null
+          ? null
+          : undefined;
+
+    if (nextTitle !== undefined && nextTitle.length === 0) {
+      throw new ValidationError('Task title is required.');
+    }
+    if (nextTitle === undefined && nextDetails === undefined) {
+      throw new ValidationError('No task changes provided.');
+    }
+
+    const userId = await getAuthUserId();
+    const supabase = await createClient();
+
+    const patch: Record<string, string | null> = {};
+    if (nextTitle !== undefined) patch.title = nextTitle;
+    if (nextDetails !== undefined) patch.details = nextDetails;
+
+    const { error } = await supabase
+      .from('task_items')
+      .update(patch)
+      .eq('id', taskId)
+      .eq('user_id', userId);
+
+    if (error) {
+      if (isMissingTaskTableError(error)) {
+        throw new ValidationError('Task system is not initialized yet. Run latest database migrations.');
+      }
+      logError(error, { action: 'updateTaskContent', userId, taskId });
+      throw new DatabaseError('Failed to update task content.');
+    }
+  } catch (error) {
+    if (error instanceof AuthenticationError || error instanceof ValidationError || error instanceof DatabaseError) {
+      throw error;
+    }
+    logError(error, { action: 'updateTaskContent', taskId });
+    throw new DatabaseError('Failed to update task content.');
   }
 }
 

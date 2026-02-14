@@ -1,12 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { CheckSquare, Loader2, RefreshCw, Trash2, X } from 'lucide-react';
+import { CheckSquare, Loader2, Pencil, RefreshCw, Save, Trash2, X } from 'lucide-react';
 import {
   deleteTask,
   getProjectTasks,
   linkTaskToNode,
   saveTaskAutofillMetadata,
+  updateTaskContent,
   updateTaskStatus,
   type TaskItem,
   type TaskStatus,
@@ -104,6 +105,10 @@ export function TaskPanel({ projectId, isOpen, onClose }: TaskPanelProps) {
   const [error, setError] = useState<string | null>(null);
   const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDetails, setEditDetails] = useState('');
+  const [savingTaskId, setSavingTaskId] = useState<string | null>(null);
   const [autofillCache, setAutofillCache] = useState<Record<string, AutofillMetadata>>({});
 
   const summary = useMemo(() => {
@@ -370,6 +375,48 @@ export function TaskPanel({ projectId, isOpen, onClose }: TaskPanelProps) {
     setSidebarNodeId(newNodeId);
   };
 
+  const handleStartEdit = (task: TaskItem) => {
+    setEditingTaskId(task.id);
+    setEditTitle(task.title);
+    setEditDetails(task.details || '');
+    setError(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTaskId(null);
+    setEditTitle('');
+    setEditDetails('');
+  };
+
+  const handleSaveEdit = async (taskId: string) => {
+    const nextTitle = editTitle.trim();
+    if (!nextTitle) {
+      setError('Task title is required.');
+      return;
+    }
+
+    setSavingTaskId(taskId);
+    setError(null);
+    try {
+      await updateTaskContent(taskId, {
+        title: nextTitle,
+        details: editDetails.trim() || null,
+      });
+      setTasks((prev) =>
+        prev.map((item) =>
+          item.id === taskId
+            ? { ...item, title: nextTitle, details: editDetails.trim() || null }
+            : item
+        )
+      );
+      handleCancelEdit();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save task.');
+    } finally {
+      setSavingTaskId(null);
+    }
+  };
+
   return (
     <div
       className={`fixed left-0 top-0 z-30 h-screen w-96 border-r border-white/10 bg-slate-900 transition-transform duration-300 ease-in-out ${
@@ -422,6 +469,7 @@ export function TaskPanel({ projectId, isOpen, onClose }: TaskPanelProps) {
         <div className="space-y-2">
           {tasks.map((task) => {
             const isUpdating = updatingTaskId === task.id;
+            const isEditing = editingTaskId === task.id;
             const metadata =
               task.metadata && typeof task.metadata === 'object' && !Array.isArray(task.metadata)
                 ? (task.metadata as Record<string, unknown>)
@@ -440,15 +488,52 @@ export function TaskPanel({ projectId, isOpen, onClose }: TaskPanelProps) {
                     className="mt-1 rounded border-slate-600 bg-slate-900 text-amber-400"
                   />
                   <div className="min-w-0 flex-1">
-                    <div
-                      className={`text-sm ${
-                        task.status === 'done' ? 'text-slate-400 line-through' : 'text-slate-100'
-                      }`}
-                    >
-                      {task.title}
-                    </div>
-                    {task.details && (
-                      <div className="mt-1 whitespace-pre-wrap text-xs text-slate-400">{task.details}</div>
+                    {isEditing ? (
+                      <div className="space-y-2">
+                        <input
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          className="w-full rounded border border-white/10 bg-slate-900 px-2 py-1 text-sm text-slate-100"
+                        />
+                        <textarea
+                          value={editDetails}
+                          onChange={(e) => setEditDetails(e.target.value)}
+                          rows={3}
+                          className="w-full resize-y rounded border border-white/10 bg-slate-900 px-2 py-1 text-xs text-slate-200"
+                          placeholder="Task details (optional)"
+                        />
+                        <div className="flex items-center gap-2 text-[11px]">
+                          <button
+                            type="button"
+                            onClick={() => void handleSaveEdit(task.id)}
+                            disabled={savingTaskId === task.id}
+                            className="inline-flex items-center gap-1 rounded border border-emerald-500/40 bg-emerald-500/10 px-2 py-1 text-emerald-300 hover:bg-emerald-500/20 disabled:opacity-40"
+                          >
+                            <Save size={11} />
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleCancelEdit}
+                            className="rounded border border-white/10 bg-slate-800 px-2 py-1 text-slate-300 hover:bg-slate-700"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div
+                          className={`text-sm ${
+                            task.status === 'done' ? 'text-slate-400 line-through' : 'text-slate-100'
+                          }`}
+                        >
+                          {task.title}
+                        </div>
+                        {task.details && (
+                          <div className="mt-1 whitespace-pre-wrap text-xs text-slate-400">{task.details}</div>
+                        )}
+                      </>
                     )}
                     {appliedAt && (
                       <div className="mt-2 inline-flex items-center rounded border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[11px] text-emerald-300">
@@ -523,6 +608,15 @@ export function TaskPanel({ projectId, isOpen, onClose }: TaskPanelProps) {
                         </option>
                       ))}
                     </select>
+                    <button
+                      type="button"
+                      disabled={isUpdating || deletingTaskId === task.id}
+                      onClick={() => handleStartEdit(task)}
+                      className="flex items-center justify-center rounded p-1.5 text-slate-500 hover:text-amber-300 hover:bg-slate-700/50 transition-colors disabled:opacity-40"
+                      title="Edit task"
+                    >
+                      <Pencil size={14} />
+                    </button>
                     <button
                       type="button"
                       disabled={isUpdating || deletingTaskId === task.id}
