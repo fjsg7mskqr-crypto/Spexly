@@ -158,30 +158,57 @@ export function LandingPage() {
             screens, and prompts in one planning canvas.
           </p>
         </AnimatedSection>
-        <div className="mt-8 rounded-2xl border border-slate-700 bg-slate-900 p-6">
-          <div className="grid gap-4 sm:grid-cols-3">
-            <AnimatedSection delay={0}>
-              <article className="rounded-xl border border-slate-700 bg-slate-950 p-4">
-                <p className="text-sm text-cyan-300">Step 1</p>
-                <h3 className="mt-2 font-semibold">Generate brief</h3>
-                <p className="mt-2 text-sm text-slate-300">Answer a short guided flow and get your starter spec.</p>
-              </article>
-            </AnimatedSection>
-            <AnimatedSection delay={0.1}>
-              <article className="rounded-xl border border-slate-700 bg-slate-950 p-4">
-                <p className="text-sm text-cyan-300">Step 2</p>
-                <h3 className="mt-2 font-semibold">Map your build</h3>
-                <p className="mt-2 text-sm text-slate-300">Connect features and screens into a visual architecture.</p>
-              </article>
-            </AnimatedSection>
-            <AnimatedSection delay={0.2}>
-              <article className="rounded-xl border border-slate-700 bg-slate-950 p-4">
-                <p className="text-sm text-cyan-300">Step 3</p>
-                <h3 className="mt-2 font-semibold">Track execution</h3>
-                <p className="mt-2 text-sm text-slate-300">Update status as you ship so scope stays under control.</p>
-              </article>
-            </AnimatedSection>
+
+        {/* Full canvas screenshot */}
+        <AnimatedSection delay={0.1}>
+          <div className="mt-8 overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl shadow-cyan-900/20">
+            <Image
+              src="/gallery-canvas.png"
+              alt="Spexly canvas — visual node map of an app's features, pages, and architecture"
+              width={1400}
+              height={1354}
+              className="h-auto w-full"
+              unoptimized
+            />
           </div>
+        </AnimatedSection>
+
+        {/* Detail screenshots */}
+        <div className="mt-6 grid gap-6 md:grid-cols-2">
+          <AnimatedSection delay={0.2}>
+            <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-700 bg-slate-900 p-6">
+              <div className="overflow-hidden rounded-xl">
+                <Image
+                  src="/gallery-node.png"
+                  alt="Spexly node card — a single feature node on the planning canvas"
+                  width={800}
+                  height={202}
+                  className="h-auto w-full"
+                  unoptimized
+                />
+              </div>
+              <p className="text-sm text-slate-300">
+                Each node represents a feature, page, or component in your project.
+              </p>
+            </div>
+          </AnimatedSection>
+          <AnimatedSection delay={0.3}>
+            <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-700 bg-slate-900 p-6">
+              <div className="overflow-hidden rounded-xl">
+                <Image
+                  src="/gallery-subtasks.png"
+                  alt="Spexly subtasks — track progress with built-in task checklists"
+                  width={548}
+                  height={336}
+                  className="h-auto w-full"
+                  unoptimized
+                />
+              </div>
+              <p className="text-sm text-slate-300">
+                Break nodes into subtasks and track progress as you build.
+              </p>
+            </div>
+          </AnimatedSection>
         </div>
       </section>
 

@@ -1,0 +1,17 @@
+[
+  {
+    "title": "Create signed ingest bridge",
+    "details": "Post AI-generated tasks into Spexly via /api/agent/ingest.",
+    "status": "in_progress",
+    "externalRef": "sample-001",
+    "metadata": {
+      "source": "manual-sample"
+    }
+  },
+  {
+    "title": "Verify tasks in project panel",
+    "details": "Open project canvas and confirm tasks appear in Tasks panel.",
+    "status": "todo",
+    "externalRef": "sample-002"
+  }
+]

@@ -86,12 +86,16 @@ describe('validateProjectName', () => {
     expect(result.sanitized).not.toMatch(/\s$/)
   })
 
-  it('HTML-escapes the output', () => {
-    // Ampersand is an allowed character in pattern? No, & is not in the allowed pattern
-    // Let's just verify valid names get sanitized output
+  it('preserves plain text without encoding', () => {
     const result = validateProjectName('My App')
     expect(result.valid).toBe(true)
     expect(result.sanitized).toBe('My App')
+  })
+
+  it('preserves apostrophes without encoding', () => {
+    const result = validateProjectName("Bob's Deli")
+    expect(result.valid).toBe(true)
+    expect(result.sanitized).toBe("Bob's Deli")
   })
 
   it('accepts exactly 100-character name', () => {
@@ -166,12 +170,13 @@ describe('validateCanvasData', () => {
   })
 
   // ─── XSS sanitization ─────────────────────────────────
-  it('sanitizes XSS payloads in node string fields', () => {
+  it('neutralizes XSS payloads in node string fields', () => {
     const node = makeValidNode('n1', { description: '<script>alert("xss")</script>' })
     const result = validateCanvasData([node], [])
     expect(result.valid).toBe(true)
     const desc = (result.sanitizedNodes![0].data as Record<string, unknown>).description as string
-    expect(desc).not.toContain('<script>')
+    // alert() is stripped by neutralizeDangerousPatterns; React handles safe rendering of remaining tags
+    expect(desc).not.toMatch(/alert\s*\(/i)
   })
 
   it('neutralizes javascript: protocol in data', () => {

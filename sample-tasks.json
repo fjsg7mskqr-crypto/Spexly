@@ -1,0 +1,31 @@
+[
+  {
+    "title": "Set up authentication flow",
+    "details": "Implement signup, login, logout, and protected dashboard routes.",
+    "status": "todo",
+    "externalRef": "codex-auth-001",
+    "metadata": {
+      "priority": "high",
+      "sourceConversation": "auth-planning"
+    }
+  },
+  {
+    "title": "Create project task panel in canvas",
+    "details": "Display task list with status dropdown and completion checkbox.",
+    "status": "in_progress",
+    "externalRef": "codex-ui-002",
+    "metadata": {
+      "priority": "medium"
+    }
+  },
+  {
+    "title": "Wire task ingest API to project",
+    "details": "Ensure POST /api/agent/ingest upserts task_items with idempotency key support.",
+    "status": "todo",
+    "externalRef": "codex-api-003",
+    "metadata": {
+      "priority": "high",
+      "area": "backend"
+    }
+  }
+]

@@ -40,20 +40,13 @@ const SQL_KEYWORDS = [
 const ALLOWED_NAME_PATTERN = /^[a-zA-Z0-9\s\-_.,!?'()]+$/;
 
 /**
- * HTML escapes a string to prevent XSS attacks
+ * Sanitizes a string by removing dangerous patterns.
+ * Note: We do NOT HTML-escape here because React handles XSS at render time.
+ * HTML-escaping stored data causes double-encoding on each save cycle
+ * (e.g. Mark's → Mark&#x27;s → Mark&amp;#x27;s).
  */
-function escapeHtml(str: string): string {
-  const cleaned = neutralizeDangerousPatterns(str);
-  const htmlEscapes: Record<string, string> = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#x27;',
-    '/': '&#x2F;',
-  };
-
-  return cleaned.replace(/[&<>"'/]/g, (char) => htmlEscapes[char] || char);
+function sanitizeText(str: string): string {
+  return neutralizeDangerousPatterns(str);
 }
 
 /**
@@ -95,8 +88,8 @@ function sanitizeStringField(value: unknown): string {
     sanitized = sanitized.substring(0, MAX_STRING_FIELD_LENGTH);
   }
 
-  // HTML escape to prevent XSS
-  sanitized = escapeHtml(sanitized);
+  // Remove dangerous patterns (React handles XSS at render time)
+  sanitized = sanitizeText(sanitized);
 
   return sanitized;
 }
@@ -149,8 +142,8 @@ export function validateProjectName(name: unknown): ValidationResult {
     };
   }
 
-  // Sanitize (HTML escape)
-  const sanitized = escapeHtml(trimmed);
+  // Remove dangerous patterns (React handles XSS at render time)
+  const sanitized = sanitizeText(trimmed);
 
   return {
     valid: true,

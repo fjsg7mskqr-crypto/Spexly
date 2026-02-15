@@ -1,0 +1,35 @@
+[
+  {
+    "title": "Feature: Authentication",
+    "details": "Implement signup, login, and logout flow for users.",
+    "status": "todo",
+    "externalRef": "autolink-auth-001",
+    "metadata": {
+      "priority": "high"
+    }
+  },
+  {
+    "title": "Screen: Dashboard",
+    "details": "Create the main dashboard screen with summary cards and recent activity.",
+    "status": "in_progress",
+    "externalRef": "autolink-dashboard-002",
+    "metadata": {
+      "priority": "medium"
+    }
+  },
+  {
+    "title": "Tech Stack: Supabase",
+    "details": "Configure database tables, auth, and row-level security policies.",
+    "status": "todo",
+    "externalRef": "autolink-supabase-003",
+    "metadata": {
+      "area": "backend"
+    }
+  },
+  {
+    "title": "Project planning follow-up",
+    "details": "Review roadmap and update priorities for next sprint.",
+    "status": "todo",
+    "externalRef": "autolink-generic-004"
+  }
+]
