@@ -30,6 +30,7 @@ export function WaitlistForm({ compact = false }: WaitlistFormProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [confirmPreviewUrl, setConfirmPreviewUrl] = useState<string | null>(null);
   const [hasTrackedStart, setHasTrackedStart] = useState(false);
+  const [showOptionalFields, setShowOptionalFields] = useState(false);
 
   const utmData = useMemo(
     () => ({
@@ -128,49 +129,66 @@ export function WaitlistForm({ compact = false }: WaitlistFormProps) {
         />
       </div>
 
-      <div className={compact ? 'hidden' : 'grid gap-4 sm:grid-cols-2'}>
-        <div className="space-y-2">
-          <label htmlFor="waitlist-tool" className="text-sm font-medium text-slate-100">
-            Primary tool (optional)
-          </label>
-          <input
-            id="waitlist-tool"
-            name="primaryTool"
-            value={primaryTool}
-            onChange={(event) => setPrimaryTool(event.target.value)}
-            placeholder="Cursor, Bolt, Claude..."
-            className="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-slate-50 outline-none transition focus:border-cyan-400"
-          />
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="waitlist-referral" className="text-sm font-medium text-slate-100">
-            Referral code (optional)
-          </label>
-          <input
-            id="waitlist-referral"
-            name="referralCode"
-            value={referralCode}
-            onChange={(event) => setReferralCode(event.target.value)}
-            placeholder="Creator or friend code"
-            className="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-slate-50 outline-none transition focus:border-cyan-400"
-          />
-        </div>
-      </div>
+      {compact ? null : (
+        <>
+          <div className="sm:hidden">
+            <button
+              type="button"
+              onClick={() => setShowOptionalFields((current) => !current)}
+              className="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-left text-sm font-medium text-slate-200 transition hover:border-cyan-400"
+              aria-expanded={showOptionalFields}
+            >
+              {showOptionalFields ? 'Hide optional details' : 'Add optional details'}
+            </button>
+          </div>
 
-      <div className={compact ? 'hidden' : 'space-y-2'}>
-        <label htmlFor="waitlist-building" className="text-sm font-medium text-slate-100">
-          What are you building? (optional)
-        </label>
-        <textarea
-          id="waitlist-building"
-          name="whatBuilding"
-          value={whatBuilding}
-          onChange={(event) => setWhatBuilding(event.target.value)}
-          placeholder="A marketplace app, an AI SaaS, a client portal..."
-          rows={3}
-          className="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-slate-50 outline-none transition focus:border-cyan-400"
-        />
-      </div>
+          <div className={showOptionalFields ? 'space-y-4 sm:space-y-0' : 'hidden sm:block'}>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <label htmlFor="waitlist-tool" className="text-sm font-medium text-slate-100">
+                  Primary tool (optional)
+                </label>
+                <input
+                  id="waitlist-tool"
+                  name="primaryTool"
+                  value={primaryTool}
+                  onChange={(event) => setPrimaryTool(event.target.value)}
+                  placeholder="Cursor, Bolt, Claude..."
+                  className="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-slate-50 outline-none transition focus:border-cyan-400"
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="waitlist-referral" className="text-sm font-medium text-slate-100">
+                  Referral code (optional)
+                </label>
+                <input
+                  id="waitlist-referral"
+                  name="referralCode"
+                  value={referralCode}
+                  onChange={(event) => setReferralCode(event.target.value)}
+                  placeholder="Creator or friend code"
+                  className="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-slate-50 outline-none transition focus:border-cyan-400"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="waitlist-building" className="text-sm font-medium text-slate-100">
+                What are you building? (optional)
+              </label>
+              <textarea
+                id="waitlist-building"
+                name="whatBuilding"
+                value={whatBuilding}
+                onChange={(event) => setWhatBuilding(event.target.value)}
+                placeholder="A marketplace app, an AI SaaS, a client portal..."
+                rows={3}
+                className="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-slate-50 outline-none transition focus:border-cyan-400"
+              />
+            </div>
+          </div>
+        </>
+      )}
 
       <div className="hidden" aria-hidden="true">
         <label htmlFor="waitlist-website">Website</label>
