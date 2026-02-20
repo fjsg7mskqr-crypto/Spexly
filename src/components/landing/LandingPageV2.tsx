@@ -536,7 +536,7 @@ export function LandingPageV2() {
         <div className="mt-8 grid gap-6 sm:mt-12 sm:gap-8 lg:grid-cols-[280px_1fr]">
           {/* Selector tabs */}
           <AnimatedSection delay={0.1}>
-            <div className="flex flex-row gap-2 overflow-x-auto pb-2 lg:flex-col lg:gap-1.5 lg:overflow-visible lg:pb-0">
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-1 lg:gap-1.5">
               {nodeTypes.map((node, i) => {
                 const Icon = node.icon;
                 const isActive = i === activeNode;
@@ -545,19 +545,19 @@ export function LandingPageV2() {
                     key={node.label}
                     type="button"
                     onClick={() => setActiveNode(i)}
-                    className={`flex shrink-0 items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold transition-all ${
+                    className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition-all sm:gap-3 sm:px-4 sm:py-3 ${
                       isActive
                         ? 'border border-slate-600 bg-slate-800/80 text-white shadow-lg'
                         : 'border border-transparent text-slate-400 hover:bg-slate-800/40 hover:text-slate-200'
                     }`}
                   >
                     <Icon
-                      className="h-5 w-5 shrink-0"
+                      className="h-4 w-4 shrink-0 sm:h-5 sm:w-5"
                       style={{ color: isActive ? node.color : undefined }}
                     />
-                    <div>
-                      <span className="block">{node.label}</span>
-                      <span className="block text-xs font-normal text-slate-500">
+                    <div className="min-w-0">
+                      <span className="block truncate text-xs sm:text-sm">{node.label}</span>
+                      <span className="hidden text-xs font-normal text-slate-500 lg:block">
                         {node.desc}
                       </span>
                     </div>
@@ -569,7 +569,7 @@ export function LandingPageV2() {
 
           {/* Preview */}
           <AnimatedSection delay={0.15}>
-            <div className="relative overflow-x-auto overflow-y-hidden rounded-2xl border border-slate-700/60 bg-slate-900/50 p-4 sm:overflow-hidden sm:p-8">
+            <div className="relative overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/50 p-4 sm:p-8">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeNode}
@@ -577,14 +577,14 @@ export function LandingPageV2() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -16 }}
                   transition={{ duration: 0.25 }}
-                  className="flex min-w-[260px] items-center justify-center sm:min-w-0"
+                  className="flex items-center justify-center"
                 >
                   <Image
                     src={`/${nodeTypes[activeNode].image}`}
                     alt={nodeTypes[activeNode].label}
                     width={600}
                     height={300}
-                    className="h-auto w-full max-w-[620px] rounded-lg object-contain sm:max-h-[320px] sm:w-auto sm:max-w-full"
+                    className="h-auto w-full max-w-full rounded-lg object-contain sm:max-h-[320px] sm:max-w-[620px]"
                     unoptimized
                   />
                 </motion.div>
