@@ -3,12 +3,6 @@ import { logError, RateLimitError } from '@/lib/errors';
 import { checkRateLimit, getClientIp, waitlistRateLimiter } from '@/lib/rate-limit/limiter';
 import { validateWaitlistSubmission, type WaitlistSubmissionInput } from '@/lib/waitlist/validation';
 
-function createConfirmationToken(): string {
-  const partA = crypto.randomUUID();
-  const partB = crypto.randomUUID().replace(/-/g, '').slice(0, 16);
-  return `${partA}${partB}`;
-}
-
 export async function POST(request: Request) {
   try {
     let payload: unknown;
@@ -55,7 +49,6 @@ export async function POST(request: Request) {
     }
 
     const supabase = await createClient();
-    const confirmToken = createConfirmationToken();
 
     const { error } = await supabase.from('waitlist_entries').insert({
       email: validation.data.email,
@@ -67,8 +60,8 @@ export async function POST(request: Request) {
       utm_source: validation.data.utmSource,
       utm_medium: validation.data.utmMedium,
       utm_campaign: validation.data.utmCampaign,
-      status: 'pending',
-      confirm_token: confirmToken,
+      status: 'confirmed',
+      confirmed_at: new Date().toISOString(),
     });
 
     if (error) {
@@ -99,15 +92,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Email provider integration should send this token as a confirmation link.
-    // For now, expose it only in development for local testing.
-    const confirmationPath = `/waitlist/confirm?token=${encodeURIComponent(confirmToken)}`;
-    const confirmationUrl = `${new URL(request.url).origin}${confirmationPath}`;
-
     return Response.json({
       ok: true,
-      status: 'queued',
-      confirmPreviewUrl: process.env.NODE_ENV === 'development' ? confirmationUrl : undefined,
+      status: 'confirmed',
     });
   } catch (error) {
     if (error instanceof RateLimitError) {

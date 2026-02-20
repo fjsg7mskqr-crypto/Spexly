@@ -74,7 +74,7 @@ export function WaitlistForm({ compact = false }: WaitlistFormProps) {
       if (result.status === 'already_joined') {
         setStatusMessage('You are already on the waitlist. We will keep you posted.');
       } else {
-        setStatusMessage('You are in. Check your inbox for a confirmation link.');
+        setStatusMessage('You are in. You have been added to the waitlist.');
       }
 
       void trackEvent({
