@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 import { launchBlogPosts } from '@/lib/content/blog';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://spexly.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://spexlyapp.com';
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {

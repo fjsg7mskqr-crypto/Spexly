@@ -30,7 +30,7 @@ const faqItems = [
 ];
 
 export function LandingPage() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://spexly.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://spexlyapp.com';
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',

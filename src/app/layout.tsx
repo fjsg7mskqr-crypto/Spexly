@@ -4,7 +4,7 @@ import { EmailVerificationGate } from "@/components/auth/EmailVerificationGate";
 import { ToastContainer } from "@/components/ui/ToastContainer";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://spexly.com'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://spexlyapp.com'),
   title: {
     default: 'Spexly',
     template: '%s | Spexly',

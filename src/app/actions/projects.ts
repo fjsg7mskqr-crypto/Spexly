@@ -36,8 +36,8 @@ async function validateOrigin(): Promise<void> {
   const allowedOrigins = [
     'http://localhost:3000', // Development
     'http://localhost:3001', // Development alternative
-    'https://spexly.com', // Production
-    'https://www.spexly.com', // Production with www
+    'https://spexlyapp.com', // Production
+    'https://www.spexlyapp.com', // Production with www
     'https://spexly.vercel.app', // Vercel preview
   ];
 
