@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Suspense } from 'react';
@@ -6,6 +8,7 @@ import { LandingTracking } from '@/components/landing/LandingTracking';
 import { LandingCtaButtons } from '@/components/landing/LandingCtaButtons';
 import { AnimatedSection } from '@/components/landing/AnimatedSection';
 import { launchBlogPosts } from '@/lib/content/blog';
+import { motion } from 'framer-motion';
 
 const faqItems = [
   {
@@ -129,17 +132,21 @@ export function LandingPage() {
 
         {/* Hero product shot — full-width canvas below the fold */}
         <AnimatedSection trigger="load" delay={0.5}>
-          <div className="mt-12 overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl shadow-cyan-900/30">
+          <motion.div 
+            whileHover={{ y: -5, boxShadow: '0 25px 50px -12px rgba(8, 145, 178, 0.4)' }}
+            transition={{ type: 'spring', stiffness: 300 }}
+            className="mt-12 overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl shadow-cyan-900/30"
+          >
             <Image
-              src="/gallery-detail.png"
-              alt="Spexly canvas with feature detail panel — plan features, user stories, and architecture in one view"
+              src="/gallery-canvas.png"
+              alt="Spexly canvas matrix view — visualize nodes and architecture without sidebar distractions"
               width={1400}
               height={700}
               className="h-auto w-full"
               priority
               unoptimized
             />
-          </div>
+          </motion.div>
         </AnimatedSection>
       </section>
 
@@ -175,58 +182,100 @@ export function LandingPage() {
             Go from raw idea to build-ready blueprint in minutes.
           </p>
         </AnimatedSection>
-        <div className="mt-8 grid gap-6 md:grid-cols-3">
-          <AnimatedSection delay={0}>
-            <div className="flex h-full flex-col rounded-xl border border-slate-700 bg-slate-900 p-6">
+
+        {/* Step 1 — text left, images right */}
+        <div className="mt-12 grid items-center gap-8 md:grid-cols-2">
+          <AnimatedSection>
+            <div>
               <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-cyan-400/15 text-lg font-bold text-cyan-300">1</span>
-              <h3 className="mt-4 text-lg font-semibold">Describe your idea</h3>
-              <p className="mt-2 text-sm text-slate-300">
-                Pick a template or import a PRD. Our AI wizard asks the right questions to understand your project.
+              <h3 className="mt-4 text-2xl font-semibold">Describe your idea</h3>
+              <p className="mt-3 text-slate-300">
+                Pick a template or import a PRD. Our AI wizard asks the right questions to understand your project and generates your first canvas automatically.
               </p>
-              <div className="mt-4 overflow-hidden rounded-lg border border-slate-700/50">
+            </div>
+          </AnimatedSection>
+          <AnimatedSection delay={0.15}>
+            <div>
+              <div className="overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-lg">
                 <Image
                   src="/gallery-templates.png"
-                  alt="Template picker — choose SaaS Starter, Marketplace, or blank canvas"
-                  width={460}
-                  height={540}
+                  alt="New Project wizard — choose a starting template, name your app, and enhance with AI"
+                  width={625}
+                  height={1022}
                   className="h-auto w-full"
                   unoptimized
                 />
               </div>
             </div>
           </AnimatedSection>
+        </div>
+
+        {/* Step 2 — images left, text right */}
+        <div className="mt-16 grid items-center gap-8 md:grid-cols-2">
           <AnimatedSection delay={0.1}>
-            <div className="flex h-full flex-col rounded-xl border border-slate-700 bg-slate-900 p-6">
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-cyan-400/15 text-lg font-bold text-cyan-300">2</span>
-              <h3 className="mt-4 text-lg font-semibold">See your blueprint</h3>
-              <p className="mt-2 text-sm text-slate-300">
-                Get an auto-generated canvas with features, pages, and architecture mapped out visually.
-              </p>
-              <div className="mt-4 overflow-hidden rounded-lg border border-slate-700/50">
+            <div className="space-y-4">
+              <div className="overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-lg">
                 <Image
-                  src="/gallery-canvas-full.png"
-                  alt="Full canvas view — visual node map of features, pages, and architecture"
-                  width={600}
+                  src="/gallery-canvas.png"
+                  alt="Canvas matrix view — visual blueprint of your project architecture"
+                  width={1160}
                   height={580}
                   className="h-auto w-full"
                   unoptimized
                 />
               </div>
+              <div className="overflow-hidden rounded-xl border border-slate-700 bg-slate-900 p-4 shadow-lg">
+                <Image
+                  src="/gallery-nodes-row.png"
+                  alt="Three different node types side by side — Idea, Feature with subtask, and Prompt"
+                  width={1560}
+                  height={250}
+                  className="h-auto w-full"
+                  unoptimized
+                />
+              </div>
             </div>
           </AnimatedSection>
-          <AnimatedSection delay={0.2}>
-            <div className="flex h-full flex-col rounded-xl border border-slate-700 bg-slate-900 p-6">
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-cyan-400/15 text-lg font-bold text-cyan-300">3</span>
-              <h3 className="mt-4 text-lg font-semibold">Build with clarity</h3>
-              <p className="mt-2 text-sm text-slate-300">
-                Export prompts, track progress, and ship with confidence in Cursor, Bolt, or Claude.
+          <AnimatedSection>
+            <div>
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-cyan-400/15 text-lg font-bold text-cyan-300">2</span>
+              <h3 className="mt-4 text-2xl font-semibold">See your blueprint</h3>
+              <p className="mt-3 text-slate-300">
+                Your canvas fills with ideas, features, screens, and prompts — each as its own node. Drag, connect, and organize until your project architecture feels right.
               </p>
-              <div className="mt-4 overflow-hidden rounded-lg border border-slate-700/50">
+            </div>
+          </AnimatedSection>
+        </div>
+
+        {/* Step 3 — text left, images right */}
+        <div className="mt-16 grid items-center gap-8 md:grid-cols-2">
+          <AnimatedSection>
+            <div>
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-cyan-400/15 text-lg font-bold text-cyan-300">3</span>
+              <h3 className="mt-4 text-2xl font-semibold">Build with clarity</h3>
+              <p className="mt-3 text-slate-300">
+                Export prompts to Claude, Cursor, or Bolt. Track progress with built-in stats. Check off subtasks as you ship each feature.
+              </p>
+            </div>
+          </AnimatedSection>
+          <AnimatedSection delay={0.15}>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-lg">
                 <Image
                   src="/gallery-export.png"
                   alt="Export options — Claude Code, Cursor, Bolt/Lovable, PDF, GitHub Issues"
                   width={310}
                   height={650}
+                  className="h-auto w-full"
+                  unoptimized
+                />
+              </div>
+              <div className="overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-lg">
+                <Image
+                  src="/gallery-progress.png"
+                  alt="Project Progress — overall progress, features built, nodes by type, and feature status"
+                  width={600}
+                  height={1300}
                   className="h-auto w-full"
                   unoptimized
                 />
@@ -269,7 +318,11 @@ export function LandingPage() {
             </div>
           </AnimatedSection>
           <AnimatedSection delay={0.15}>
-            <div className="overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-xl shadow-cyan-900/10">
+            <motion.div 
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: 'spring', stiffness: 300 }}
+              className="overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-xl shadow-cyan-900/10"
+            >
               <Image
                 src="/gallery-feature-panel.png"
                 alt="Feature detail panel — summary, problem, user story, priority, and effort fields"
@@ -278,7 +331,7 @@ export function LandingPage() {
                 className="h-auto w-full"
                 unoptimized
               />
-            </div>
+            </motion.div>
           </AnimatedSection>
         </div>
 
@@ -288,9 +341,9 @@ export function LandingPage() {
             <div className="overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-xl shadow-cyan-900/10">
               <Image
                 src="/gallery-import.png"
-                alt="Import document — paste text, upload files, connect Notion, or import conversations"
-                width={1100}
-                height={800}
+                alt="Import document — drag and drop PDF, DOCX, TXT, or Markdown files to your canvas"
+                width={1308}
+                height={762}
                 className="h-auto w-full"
                 unoptimized
               />
@@ -391,50 +444,118 @@ export function LandingPage() {
         <div className="mt-8 grid gap-6 md:grid-cols-3">
           <AnimatedSection delay={0}>
             <article className="flex h-full flex-col rounded-xl border border-slate-700 bg-slate-900 p-5">
-              <div className="overflow-hidden rounded-lg border border-slate-700/50">
-                <Image
-                  src="/gallery-node.png"
-                  alt="A single feature node — structured planning for beginners"
-                  width={800}
-                  height={202}
-                  className="h-auto w-full"
-                  unoptimized
-                />
+              <div className="space-y-3">
+                <div className="overflow-hidden rounded-lg border border-slate-700/50 p-3">
+                  <Image
+                    src="/gallery-node-idea.png"
+                    alt="An idea node on the canvas"
+                    width={420}
+                    height={80}
+                    className="h-auto w-full"
+                    unoptimized
+                  />
+                </div>
+                <div className="overflow-hidden rounded-lg border border-slate-700/50 p-3">
+                  <Image
+                    src="/gallery-node-tech-stack.png"
+                    alt="A tech stack node on the canvas"
+                    width={502}
+                    height={242}
+                    className="h-auto w-full"
+                    unoptimized
+                  />
+                </div>
+                <div className="overflow-hidden rounded-lg border border-slate-700/50 p-3">
+                  <Image
+                    src="/task.png"
+                    alt="Landing Page node with subtask checklist"
+                    width={400}
+                    height={160}
+                    className="h-auto w-full"
+                    unoptimized
+                  />
+                </div>
+                <div className="overflow-hidden rounded-lg border border-slate-700/50 p-3">
+                  <Image
+                    src="/gallery-node-prompt.png"
+                    alt="A prompt node on the canvas"
+                    width={420}
+                    height={80}
+                    className="h-auto w-full"
+                    unoptimized
+                  />
+                </div>
+                <div className="overflow-hidden rounded-lg border border-slate-700/50 p-3">
+                  <Image
+                    src="/gallery-node-note.png"
+                    alt="A note node on the canvas"
+                    width={530}
+                    height={208}
+                    className="h-auto w-full"
+                    unoptimized
+                  />
+                </div>
               </div>
               <h3 className="mt-4 font-semibold">Beginner vibe coder</h3>
-              <p className="mt-2 text-sm text-slate-300">Avoid chaos and build your first app with a clear plan. Every feature gets its own node with guided fields.</p>
+              <p className="mt-2 text-sm text-slate-300">Avoid chaos and build your first app with a clear plan. Every feature, idea, and prompt gets its own node with guided fields.</p>
             </article>
           </AnimatedSection>
           <AnimatedSection delay={0.1}>
             <article className="flex h-full flex-col rounded-xl border border-slate-700 bg-slate-900 p-5">
-              <div className="overflow-hidden rounded-lg border border-slate-700/50">
-                <Image
-                  src="/gallery-canvas.png"
-                  alt="Full canvas — manage complex projects visually"
-                  width={1400}
-                  height={1354}
-                  className="h-auto w-full"
-                  unoptimized
-                />
+              <div className="space-y-3">
+                <div className="overflow-hidden rounded-lg border border-slate-700/50">
+                  <Image
+                    src="/gallery-subtasks.png"
+                    alt="Task sidebar detail view"
+                    width={1503}
+                    height={1187}
+                    className="h-auto w-full"
+                    unoptimized
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="overflow-hidden rounded-lg border border-slate-700/50 p-2">
+                    <Image
+                      src="/gallery-minimap.png"
+                      alt="Mini map for navigating large canvases"
+                      width={374}
+                      height={300}
+                      className="h-auto w-full"
+                      unoptimized
+                    />
+                  </div>
+                  <div className="overflow-hidden rounded-lg border border-slate-700/50 p-2">
+                    <Image
+                      src="/gallery-minimap-lg.png"
+                      alt="Zoomed mini map view"
+                      width={388}
+                      height={282}
+                      className="h-auto w-full"
+                      unoptimized
+                    />
+                  </div>
+                </div>
               </div>
               <h3 className="mt-4 font-semibold">Solo indie builder</h3>
-              <p className="mt-2 text-sm text-slate-300">Ship faster without losing structure. See your entire project mapped out on one canvas.</p>
+              <p className="mt-2 text-sm text-slate-300">Ship faster without losing structure. Navigate complex projects with the minimap and see everything at a glance.</p>
             </article>
           </AnimatedSection>
           <AnimatedSection delay={0.2}>
             <article className="flex h-full flex-col rounded-xl border border-slate-700 bg-slate-900 p-5">
-              <div className="overflow-hidden rounded-lg border border-slate-700/50">
-                <Image
-                  src="/gallery-export.png"
-                  alt="Export options — share specs with students and teams"
-                  width={310}
-                  height={650}
-                  className="h-auto w-full"
-                  unoptimized
-                />
+              <div className="space-y-3">
+                <div className="overflow-hidden rounded-lg border border-slate-700/50">
+                  <Image
+                    src="/gallery-shortcuts.png"
+                    alt="Keyboard shortcuts — undo, redo, zoom, pan, multi-select"
+                    width={730}
+                    height={620}
+                    className="h-auto w-full"
+                    unoptimized
+                  />
+                </div>
               </div>
               <h3 className="mt-4 font-semibold">Creator educator</h3>
-              <p className="mt-2 text-sm text-slate-300">Teach repeatable AI building workflows. Export to PDF, TODO.md, or GitHub Issues to share with students.</p>
+              <p className="mt-2 text-sm text-slate-300">Teach repeatable AI building workflows. Export to PDF, TODO.md, or GitHub Issues. Keyboard shortcuts make demos smooth.</p>
             </article>
           </AnimatedSection>
         </div>

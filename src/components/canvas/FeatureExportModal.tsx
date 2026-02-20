@@ -15,6 +15,7 @@ interface FeatureExportModalProps {
 
 export function FeatureExportModal({ isOpen, onClose, format }: FeatureExportModalProps) {
   const nodes = useCanvasStore((s) => s.nodes);
+  const edges = useCanvasStore((s) => s.edges);
   const featureNodes = nodes.filter((n) => n.type === 'feature');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [copiedMessage, setCopiedMessage] = useState<string | null>(null);
@@ -48,7 +49,7 @@ export function FeatureExportModal({ isOpen, onClose, format }: FeatureExportMod
     const generator = format === 'claude' ? generateFeaturePrompt : generateCursorPlanPrompt;
 
     const combined = selected
-      .map((feature) => generator(feature, nodes))
+      .map((feature) => generator(feature, nodes, edges))
       .join('\n\n---\n\n');
 
     try {

@@ -11,7 +11,9 @@ export type MarketingEventName =
   | 'canvas_loaded'
   | 'node_created'
   | 'node_status_changed'
-  | 'export_clicked';
+  | 'export_clicked'
+  | 'demo_video_open'
+  | 'demo_video_play';
 
 interface TrackEventInput {
   eventName: MarketingEventName;

@@ -280,7 +280,7 @@ export function ProjectWizard({ isOpen, onClose, onComplete }: ProjectWizardProp
     <Dialog.Root open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-white/10 bg-slate-900 p-6 shadow-2xl">
+        <Dialog.Content className="wizard-scrollbar fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-full max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-white/10 bg-slate-900 p-6 shadow-2xl">
           {/* Close button */}
           <Dialog.Close asChild>
             <button className="absolute right-4 top-4 text-slate-400 hover:text-slate-200 transition-colors">
@@ -319,7 +319,7 @@ export function ProjectWizard({ isOpen, onClose, onComplete }: ProjectWizardProp
             <>
               <StepIndicator currentStep={step} totalSteps={TOTAL_STEPS} />
 
-              <div className="mt-5 max-h-[60vh] space-y-4 overflow-y-auto pr-2">
+              <div className="wizard-scrollbar mt-5 max-h-[60vh] space-y-4 overflow-y-auto pr-2">
                 {QUESTIONS.map((q, index) => (
                   <WizardStep
                     key={q.key}

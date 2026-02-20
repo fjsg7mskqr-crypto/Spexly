@@ -59,7 +59,7 @@ export function ExportMenu() {
   };
 
   const handleExportContextFile = () => {
-    const content = generateContextFile(nodes);
+    const content = generateContextFile(nodes, edges);
     downloadFile(content, '.context-index.md');
     setIsOpen(false);
   };
@@ -73,7 +73,7 @@ export function ExportMenu() {
     }
 
     if (featureNodes.length === 1) {
-      const content = generateFeaturePrompt(featureNodes[0], nodes);
+      const content = generateFeaturePrompt(featureNodes[0], nodes, edges);
       copyToClipboard(content, 'Claude prompt copied!');
       setIsOpen(false);
     } else {
@@ -91,7 +91,7 @@ export function ExportMenu() {
     }
 
     if (featureNodes.length === 1) {
-      const content = generateCursorPlanPrompt(featureNodes[0], nodes);
+      const content = generateCursorPlanPrompt(featureNodes[0], nodes, edges);
       copyToClipboard(content, 'Cursor prompt copied!');
       setIsOpen(false);
     } else {
@@ -107,7 +107,7 @@ export function ExportMenu() {
   };
 
   const handleExportPDF = () => {
-    const doc = generateProjectPDF(nodes, projectName);
+    const doc = generateProjectPDF(nodes, projectName, edges);
     doc.save(`${projectName || 'project-context'}.pdf`);
     setCopiedMessage('Downloaded PDF');
     setTimeout(() => setCopiedMessage(null), 2000);

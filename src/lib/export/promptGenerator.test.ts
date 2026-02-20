@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { generateFeaturePrompt, generateCursorPlanPrompt, generateFullStackPrompt } from './promptGenerator'
-import type { SpexlyNode } from '@/types/nodes'
+import type { SpexlyNode, SpexlyEdge } from '@/types/nodes'
 
 // ─── Fixtures ────────────────────────────────────────────
 
@@ -112,6 +112,29 @@ function makeScreenNode(overrides: Record<string, unknown> = {}): SpexlyNode {
   } as SpexlyNode
 }
 
+function makePromptNode(overrides: Record<string, unknown> = {}): SpexlyNode {
+  return {
+    id: 'prompt-1',
+    type: 'prompt',
+    position: { x: 0, y: 0 },
+    data: {
+      promptText: 'Build Auth Flow with secure sessions',
+      targetTool: 'Claude',
+      resultNotes: 'Using server actions avoided client-side auth bugs',
+      expanded: false,
+      completed: false,
+      promptVersion: 'v1',
+      contextUsed: ['Auth Flow', 'User authentication'],
+      actualOutput: 'Generated route handlers and middleware',
+      refinements: ['Add RLS policy validation'],
+      breakdown: ['Create auth endpoint', 'Add password hashing'],
+      tags: [],
+      estimatedHours: null,
+      ...overrides,
+    },
+  } as SpexlyNode
+}
+
 // ─── generateFeaturePrompt ───────────────────────────────
 
 describe('generateFeaturePrompt', () => {
@@ -189,6 +212,40 @@ describe('generateFeaturePrompt', () => {
     const output = generateFeaturePrompt(makeFeatureNode(), [])
     expect(output).toContain('Spexly')
   })
+
+  it('includes feature planning metadata', () => {
+    const output = generateFeaturePrompt(makeFeatureNode({
+      risks: 'Token refresh edge cases',
+      metrics: '95% successful login rate',
+      notes: 'Coordinate with onboarding feature',
+      tags: ['auth', 'security'],
+      estimatedHours: 12,
+    }), [])
+    expect(output).toContain('## Feature Metadata')
+    expect(output).toContain('Priority: Must')
+    expect(output).toContain('Estimated Hours: 12')
+    expect(output).toContain('Token refresh edge cases')
+    expect(output).toContain('95% successful login rate')
+    expect(output).toContain('auth, security')
+  })
+
+  it('includes connected context and prompt learnings when related by edges', () => {
+    const feature = makeFeatureNode()
+    const screen = makeScreenNode()
+    const prompt = makePromptNode()
+    const edges: SpexlyEdge[] = [
+      { id: 'e-feature-screen', source: feature.id, target: screen.id },
+      { id: 'e-feature-prompt', source: feature.id, target: prompt.id },
+    ]
+    const output = generateFeaturePrompt(feature, [feature, screen, prompt], edges)
+
+    expect(output).toContain('## Connected Canvas Context')
+    expect(output).toContain('screen: Dashboard')
+    expect(output).toContain('## Prompt Learnings')
+    expect(output).toContain('Prompt 1 (Claude)')
+    expect(output).toContain('Using server actions avoided client-side auth bugs')
+    expect(output).toContain('Create auth endpoint')
+  })
 })
 
 // ─── generateCursorPlanPrompt ────────────────────────────
@@ -223,6 +280,19 @@ describe('generateCursorPlanPrompt', () => {
   it('includes dependencies', () => {
     const output = generateCursorPlanPrompt(makeFeatureNode(), [])
     expect(output).toContain('Database setup')
+  })
+
+  it('includes planning metadata and prompt learnings', () => {
+    const feature = makeFeatureNode({ metrics: 'Login completion > 90%' })
+    const prompt = makePromptNode({ targetTool: 'Cursor' })
+    const edges: SpexlyEdge[] = [{ id: 'e-feature-prompt', source: feature.id, target: prompt.id }]
+    const output = generateCursorPlanPrompt(feature, [feature, prompt], edges)
+
+    expect(output).toContain('## Planning Metadata')
+    expect(output).toContain('Priority: Must')
+    expect(output).toContain('## Prompt Learnings')
+    expect(output).toContain('Cursor:')
+    expect(output).toContain('## Connected Canvas Context')
   })
 })
 

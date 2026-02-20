@@ -1,10 +1,17 @@
-import type { SpexlyNode } from '@/types/nodes';
+import type { SpexlyNode, SpexlyEdge } from '@/types/nodes';
+import {
+  truncate,
+  getNodeDisplayName,
+  getConnectedContext,
+  getStringArray,
+  getRelatedPromptNodes,
+} from './exportContextUtils';
 
 /**
  * Generates a .context/index.md file from the canvas nodes
  * This file provides persistent context for AI coding assistants
  */
-export function generateContextFile(nodes: SpexlyNode[]): string {
+export function generateContextFile(nodes: SpexlyNode[], edges: SpexlyEdge[] = []): string {
   const ideaNode = nodes.find((n) => n.type === 'idea');
   const featureNodes = nodes.filter((n) => n.type === 'feature');
   const screenNodes = nodes.filter((n) => n.type === 'screen');
@@ -149,6 +156,61 @@ export function generateContextFile(nodes: SpexlyNode[]): string {
           sections.push('**Dependencies:**');
           data.dependencies.forEach((dep) => {
             sections.push(`- ${dep}`);
+          });
+          sections.push('');
+        }
+
+        sections.push('**Planning Metadata:**');
+        sections.push(`- Priority: ${data.priority}`);
+        sections.push(`- Status: ${data.status}`);
+        sections.push(`- Effort: ${data.effort}`);
+        if (typeof data.estimatedHours === 'number') {
+          sections.push(`- Estimated Hours: ${data.estimatedHours}`);
+        }
+        if (data.tags?.length > 0) {
+          sections.push(`- Tags: ${data.tags.join(', ')}`);
+        }
+        if (data.metrics) {
+          sections.push(`- Metrics: ${data.metrics}`);
+        }
+        if (data.risks) {
+          sections.push(`- Risks: ${data.risks}`);
+        }
+        if (data.notes) {
+          sections.push(`- Notes: ${data.notes}`);
+        }
+        sections.push('');
+
+        const connectedContext = getConnectedContext(node.id, nodes, edges);
+        if (connectedContext.length > 0) {
+          sections.push('**Connected Canvas Context:**');
+          connectedContext.forEach(({ node: connectedNode, direction }) => {
+            const directionLabel = direction === 'incoming' ? 'Incoming' : 'Outgoing';
+            sections.push(`- [${directionLabel}] ${connectedNode.type}: ${getNodeDisplayName(connectedNode)}`);
+          });
+          sections.push('');
+        }
+
+        const relatedPrompts = getRelatedPromptNodes(node, nodes, edges);
+        if (relatedPrompts.length > 0) {
+          sections.push('**Prompt Learnings:**');
+          relatedPrompts.forEach((promptNode, idx) => {
+            if (promptNode.type !== 'prompt') return;
+            sections.push(`- Prompt ${idx + 1} (${promptNode.data.targetTool})`);
+            if (promptNode.data.resultNotes) {
+              sections.push(`  - Result: ${truncate(promptNode.data.resultNotes, 240)}`);
+            }
+            if (promptNode.data.promptText) {
+              sections.push(`  - Prompt: ${truncate(promptNode.data.promptText, 240)}`);
+            }
+            const breakdown = getStringArray(promptNode.data.breakdown);
+            if (breakdown.length > 0) {
+              sections.push(`  - Breakdown: ${breakdown.slice(0, 4).join(' | ')}`);
+            }
+            const refinements = getStringArray(promptNode.data.refinements);
+            if (refinements.length > 0) {
+              sections.push(`  - Refinements: ${refinements.slice(0, 3).join(' | ')}`);
+            }
           });
           sections.push('');
         }

@@ -1,5 +1,12 @@
 import jsPDF from 'jspdf';
-import type { SpexlyNode } from '@/types/nodes';
+import type { SpexlyNode, SpexlyEdge } from '@/types/nodes';
+import {
+  truncate,
+  getNodeDisplayName,
+  getConnectedContext,
+  getStringArray,
+  getRelatedPromptNodes,
+} from './exportContextUtils';
 
 const MARGIN = 15;
 const PAGE_WIDTH = 210; // A4 width in mm
@@ -111,7 +118,11 @@ function addDivider(state: PDFState): void {
  * Generates a formatted PDF document from canvas nodes.
  * Follows the same section structure as contextFileGenerator.ts.
  */
-export function generateProjectPDF(nodes: SpexlyNode[], projectName?: string): jsPDF {
+export function generateProjectPDF(
+  nodes: SpexlyNode[],
+  projectName?: string,
+  edges: SpexlyEdge[] = []
+): jsPDF {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
   const ideaNode = nodes.find((n) => n.type === 'idea');
@@ -240,6 +251,54 @@ export function generateProjectPDF(nodes: SpexlyNode[], projectName?: string): j
         for (const dep of data.dependencies) {
           addBullet(state, dep);
         }
+      }
+
+      addText(state, 'Planning Metadata:', 10, true);
+      addBullet(state, `Priority: ${data.priority}`);
+      addBullet(state, `Status: ${data.status}`);
+      addBullet(state, `Effort: ${data.effort}`);
+      if (typeof data.estimatedHours === 'number') {
+        addBullet(state, `Estimated Hours: ${data.estimatedHours}`);
+      }
+      if (data.tags?.length > 0) {
+        addBullet(state, `Tags: ${data.tags.join(', ')}`);
+      }
+      if (data.metrics) {
+        addBullet(state, `Metrics: ${data.metrics}`);
+      }
+      if (data.risks) {
+        addBullet(state, `Risks: ${data.risks}`);
+      }
+      if (data.notes) {
+        addBullet(state, `Notes: ${data.notes}`);
+      }
+
+      const connectedContext = getConnectedContext(node.id, nodes, edges);
+      if (connectedContext.length > 0) {
+        addText(state, 'Connected Canvas Context:', 10, true);
+        connectedContext.forEach(({ node: connectedNode, direction }) => {
+          const directionLabel = direction === 'incoming' ? 'Incoming' : 'Outgoing';
+          addBullet(state, `${directionLabel}: ${connectedNode.type} -> ${getNodeDisplayName(connectedNode)}`);
+        });
+      }
+
+      const relatedPrompts = getRelatedPromptNodes(node, nodes, edges);
+      if (relatedPrompts.length > 0) {
+        addText(state, 'Prompt Learnings:', 10, true);
+        relatedPrompts.forEach((promptNode, idx) => {
+          if (promptNode.type !== 'prompt') return;
+          addBullet(state, `Prompt ${idx + 1} (${promptNode.data.targetTool})`);
+          if (promptNode.data.resultNotes) {
+            addBullet(state, `Result: ${truncate(promptNode.data.resultNotes, 180)}`, 8);
+          }
+          if (promptNode.data.promptText) {
+            addBullet(state, `Prompt: ${truncate(promptNode.data.promptText, 180)}`, 8);
+          }
+          const breakdown = getStringArray(promptNode.data.breakdown);
+          if (breakdown.length > 0) {
+            addBullet(state, `Breakdown: ${breakdown.slice(0, 3).join(' | ')}`, 8);
+          }
+        });
       }
 
       addDivider(state);

@@ -123,6 +123,36 @@ body {
   background-color: #64748b;
 }
 
+/* ── Wizard modal scrollbar ───────────────────────────── */
+
+.wizard-scrollbar {
+  color-scheme: dark;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.55) transparent;
+  scrollbar-gutter: stable;
+}
+
+.wizard-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.wizard-scrollbar::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.14);
+  border-radius: 9999px;
+}
+
+.wizard-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.55);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.wizard-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(148, 163, 184, 0.75);
+}
+
 /* ── React Flow dark theme overrides ────────────────── */
 
 .react-flow__controls button {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { generateContextFile } from './contextFileGenerator'
-import type { SpexlyNode } from '@/types/nodes'
+import type { SpexlyNode, SpexlyEdge } from '@/types/nodes'
 
 // ─── Fixtures ────────────────────────────────────────────
 
@@ -111,6 +111,29 @@ function makeTechStackNode(toolName: string, category: string, version?: string)
   } as SpexlyNode
 }
 
+function makePromptNode(overrides: Record<string, unknown> = {}): SpexlyNode {
+  return {
+    id: 'prompt-1',
+    type: 'prompt',
+    position: { x: 0, y: 0 },
+    data: {
+      promptText: 'Implement Auth with secure session handling',
+      targetTool: 'Claude',
+      resultNotes: 'Server actions were more reliable than client auth state.',
+      expanded: false,
+      completed: false,
+      promptVersion: '',
+      contextUsed: ['Auth'],
+      actualOutput: '',
+      refinements: ['Add token refresh tests'],
+      breakdown: ['Create auth route', 'Add middleware'],
+      tags: [],
+      estimatedHours: null,
+      ...overrides,
+    },
+  } as SpexlyNode
+}
+
 // ─── Tests ───────────────────────────────────────────────
 
 describe('generateContextFile', () => {
@@ -170,6 +193,31 @@ describe('generateContextFile', () => {
   it('includes feature-specific constraints', () => {
     const output = generateContextFile([makeFeatureNode()])
     expect(output).toContain('Must use Postgres')
+  })
+
+  it('includes connected canvas context and prompt learnings for features', () => {
+    const feature = makeFeatureNode()
+    const screen = makeScreenNode()
+    const prompt = makePromptNode()
+    const edges: SpexlyEdge[] = [
+      { id: 'e-feature-screen', source: feature.id, target: screen.id },
+      { id: 'e-feature-prompt', source: feature.id, target: prompt.id },
+    ]
+
+    const output = generateContextFile([feature, screen, prompt], edges)
+    expect(output).toContain('Connected Canvas Context')
+    expect(output).toContain('screen: Dashboard')
+    expect(output).toContain('Prompt Learnings')
+    expect(output).toContain('Prompt 1 (Claude)')
+    expect(output).toContain('Server actions were more reliable')
+  })
+
+  it('includes planning metadata in feature section', () => {
+    const output = generateContextFile([makeFeatureNode({ estimatedHours: 8, tags: ['auth'] })])
+    expect(output).toContain('Planning Metadata')
+    expect(output).toContain('Priority: Must')
+    expect(output).toContain('Estimated Hours: 8')
+    expect(output).toContain('Tags: auth')
   })
 
   it('handles empty canvas without error', () => {
