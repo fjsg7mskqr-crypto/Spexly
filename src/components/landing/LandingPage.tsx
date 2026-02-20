@@ -106,7 +106,7 @@ export function LandingPage() {
             </AnimatedSection>
             <AnimatedSection trigger="load" delay={0.15}>
               <h1 className="text-4xl font-semibold leading-tight sm:text-5xl lg:text-6xl">
-                Plan your AI app before you burn credits.
+                Plan your vibe coding project before you burn credits.
               </h1>
             </AnimatedSection>
             <AnimatedSection trigger="load" delay={0.25}>
@@ -154,7 +154,7 @@ export function LandingPage() {
       <section className="relative mx-auto grid w-full max-w-6xl gap-6 px-6 py-16 md:grid-cols-2">
         <AnimatedSection delay={0}>
           <div className="rounded-2xl border border-rose-400/25 bg-rose-500/10 p-6">
-            <h2 className="mb-3 text-2xl font-semibold">Without planning</h2>
+            <h2 className="mb-3 text-2xl font-semibold">Vibe coding without a plan</h2>
             <ul className="space-y-2 text-slate-200">
               <li>Prompt thrash and wasted tokens</li>
               <li>Disconnected features and broken flows</li>
@@ -177,7 +177,7 @@ export function LandingPage() {
       {/* ── How It Works ──────────────────────────────────── */}
       <section className="relative mx-auto w-full max-w-6xl px-6 py-16">
         <AnimatedSection>
-          <h2 className="text-3xl font-semibold">How it works</h2>
+          <h2 className="text-3xl font-semibold">How Spexly works</h2>
           <p className="mt-3 max-w-3xl text-slate-300">
             Go from raw idea to build-ready blueprint in minutes.
           </p>
@@ -439,7 +439,7 @@ export function LandingPage() {
       {/* ── Use Cases ─────────────────────────────────────── */}
       <section className="relative mx-auto w-full max-w-6xl px-6 py-16">
         <AnimatedSection>
-          <h2 className="text-3xl font-semibold">Built for builders like you</h2>
+          <h2 className="text-3xl font-semibold">Built for vibe coders like you</h2>
         </AnimatedSection>
         <div className="mt-8 grid gap-6 md:grid-cols-3">
           <AnimatedSection delay={0}>

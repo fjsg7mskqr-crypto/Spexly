@@ -6,25 +6,51 @@ import { ToastContainer } from "@/components/ui/ToastContainer";
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://spexlyapp.com'),
   title: {
-    default: 'Spexly',
+    default: 'Spexly — Visual Project Planner for Vibe Coding',
     template: '%s | Spexly',
   },
-  description: 'Plan your app visually. Build with clarity.',
+  description:
+    'Stop burning AI credits on bad prompts. Spexly is a visual planning workspace for vibe coders — map features, screens, and prompts before you build in Cursor, Bolt, or Claude.',
+  keywords: [
+    'vibe coding planner',
+    'plan vibe coding project',
+    'Bolt',
+    'Cursor',
+    'Claude',
+    'visual project management',
+    'AI coding planner',
+    'vibe coding',
+    'app planning tool',
+    'prompt planning',
+  ],
   openGraph: {
-    title: 'Spexly',
-    description: 'Plan your app visually. Build with clarity.',
+    title: 'Spexly — Visual Project Planner for Vibe Coding',
+    description:
+      'Stop burning AI credits on bad prompts. Map features, screens, and prompts visually before you build in Cursor, Bolt, or Claude.',
     url: '/',
     siteName: 'Spexly',
     type: 'website',
+    images: [
+      {
+        url: '/gallery-canvas.png',
+        width: 1200,
+        height: 630,
+        alt: 'Spexly — Plan your vibe coding project visually',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Spexly',
-    description: 'Plan your app visually. Build with clarity.',
+    title: 'Spexly — Visual Project Planner for Vibe Coding',
+    description:
+      'Stop burning AI credits on bad prompts. Map features, screens, and prompts visually before you build in Cursor, Bolt, or Claude.',
+    site: '@spexlyapp',
+    creator: '@spexlyapp',
+    images: ['/gallery-canvas.png'],
   },
   icons: {
-    icon: "/spexly-logo.png",
-    apple: "/spexly-logo.png",
+    icon: '/spexly-logo.png',
+    apple: '/spexly-logo.png',
   },
 };
 
