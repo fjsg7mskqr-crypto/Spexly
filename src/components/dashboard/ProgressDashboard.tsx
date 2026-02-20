@@ -3,7 +3,6 @@
 import { useMemo } from 'react';
 import { X } from 'lucide-react';
 import { useCanvasStore } from '@/store/canvasStore';
-import { NODE_TYPE_CONFIGS } from '@/lib/constants';
 import type { SpexlyNodeType, FeatureStatus, FeatureNodeData } from '@/types/nodes';
 import { ProgressBar } from './ProgressBar';
 import { NodeTypeRow } from './NodeTypeRow';
@@ -49,8 +48,13 @@ export function ProgressDashboard({ isOpen, onClose }: ProgressDashboardProps) {
 
   const overallPercent = summary.totalNodes > 0 ? Math.round((completedCount / summary.totalNodes) * 100) : 0;
 
-  const totalFeatures = ALL_STATUSES.reduce((sum, s) => sum + statusCounts[s], 0);
-  const builtCount = statusCounts.Built;
+  const { totalFeatures, builtCount } = useMemo(() => {
+    const features = nodes.filter((n) => n.type === 'feature');
+    return {
+      totalFeatures: features.length,
+      builtCount: features.filter((n) => n.data.completed).length,
+    };
+  }, [nodes]);
   const completionPercent = totalFeatures > 0 ? Math.round((builtCount / totalFeatures) * 100) : 0;
 
   return (
@@ -105,7 +109,7 @@ export function ProgressDashboard({ isOpen, onClose }: ProgressDashboardProps) {
             </h3>
             <ProgressBar
               percent={completionPercent}
-              color={NODE_TYPE_CONFIGS.feature.color}
+              color="#60A5FA"
               label={`${completionPercent}% Complete (${builtCount}/${totalFeatures} features built)`}
             />
           </div>
