@@ -569,7 +569,7 @@ export function LandingPageV2() {
 
           {/* Preview */}
           <AnimatedSection delay={0.15}>
-            <div className="relative overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/50 p-4 sm:p-8">
+            <div className="relative overflow-x-auto overflow-y-hidden rounded-2xl border border-slate-700/60 bg-slate-900/50 p-4 sm:overflow-hidden sm:p-8">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeNode}
@@ -577,18 +577,16 @@ export function LandingPageV2() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -16 }}
                   transition={{ duration: 0.25 }}
-                  className="w-full"
+                  className="flex min-w-[260px] items-center justify-center sm:min-w-0"
                 >
-                  <div className="relative h-52 w-full overflow-hidden rounded-lg sm:h-auto sm:overflow-visible">
-                    <Image
-                      src={`/${nodeTypes[activeNode].image}`}
-                      alt={nodeTypes[activeNode].label}
-                      width={600}
-                      height={300}
-                      className="h-full w-full scale-125 rounded-lg object-cover object-center sm:h-auto sm:w-auto sm:scale-100 sm:object-contain sm:max-h-[320px] sm:max-w-full"
-                      unoptimized
-                    />
-                  </div>
+                  <Image
+                    src={`/${nodeTypes[activeNode].image}`}
+                    alt={nodeTypes[activeNode].label}
+                    width={600}
+                    height={300}
+                    className="h-auto w-full max-w-[620px] rounded-lg object-contain sm:max-h-[320px] sm:w-auto sm:max-w-full"
+                    unoptimized
+                  />
                 </motion.div>
               </AnimatePresence>
 
