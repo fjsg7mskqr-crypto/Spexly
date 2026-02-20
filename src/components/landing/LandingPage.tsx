@@ -659,7 +659,7 @@ export function LandingPage() {
             <Link href="/waitlist" className="hover:text-white">Waitlist</Link>
             <Link href="/blog" className="hover:text-white">Blog</Link>
             <a
-              href="https://x.com/spexlyapp"
+              href="https://x.com/novae1532"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-white"

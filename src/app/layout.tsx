@@ -44,8 +44,8 @@ export const metadata: Metadata = {
     title: 'Spexly — Visual Project Planner for Vibe Coding',
     description:
       'Stop burning AI credits on bad prompts. Map features, screens, and prompts visually before you build in Cursor, Bolt, or Claude.',
-    site: '@spexlyapp',
-    creator: '@spexlyapp',
+    site: '@novae1532',
+    creator: '@novae1532',
     images: ['/gallery-canvas.png'],
   },
   icons: {
