@@ -23,19 +23,23 @@ CREATE INDEX IF NOT EXISTS idx_task_items_project_status ON public.task_items(pr
 
 ALTER TABLE public.task_items ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view own task items" ON public.task_items;
 CREATE POLICY "Users can view own task items"
 ON public.task_items FOR SELECT TO authenticated
 USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can insert own task items" ON public.task_items;
 CREATE POLICY "Users can insert own task items"
 ON public.task_items FOR INSERT TO authenticated
 WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update own task items" ON public.task_items;
 CREATE POLICY "Users can update own task items"
 ON public.task_items FOR UPDATE TO authenticated
 USING (auth.uid() = user_id)
 WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete own task items" ON public.task_items;
 CREATE POLICY "Users can delete own task items"
 ON public.task_items FOR DELETE TO authenticated
 USING (auth.uid() = user_id);
@@ -59,6 +63,7 @@ CREATE INDEX IF NOT EXISTS idx_agent_ingest_events_created_at ON public.agent_in
 
 ALTER TABLE public.agent_ingest_events ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view own ingest events" ON public.agent_ingest_events;
 CREATE POLICY "Users can view own ingest events"
 ON public.agent_ingest_events FOR SELECT TO authenticated
 USING (auth.uid() = user_id);

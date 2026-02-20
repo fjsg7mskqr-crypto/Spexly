@@ -53,7 +53,7 @@ Mid-session, user reported: *"This AI import feature is not working for me very 
 - `/src/lib/integrations/base.ts` - Base integration class
 
 **Database:**
-Migration already exists: `/supabase/migrations/20260211_add_integrations_table.sql`
+Migration already exists: `/supabase/migrations/202602110001_add_integrations_table.sql`
 
 **Environment Variables Needed:**
 ```bash
@@ -293,7 +293,7 @@ Duration    3.77s
 
 ### Tables Created (via migrations)
 
-**1. profiles** (`20260210_add_user_tier_system.sql`)
+**1. profiles** (`202602100002_add_user_tier_system.sql`)
 ```sql
 CREATE TABLE profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id),
@@ -303,11 +303,11 @@ CREATE TABLE profiles (
 );
 ```
 
-**2. import_usage** (`20260210_add_import_usage_tracking.sql`)
+**2. import_usage** (`202602100001_add_import_usage_tracking.sql`)
 - Tracks daily AI import usage per user
 - Enforces rate limits
 
-**3. integrations** (`20260211_add_integrations_table.sql`)
+**3. integrations** (`202602110001_add_integrations_table.sql`)
 ```sql
 CREATE TABLE integrations (
   id UUID PRIMARY KEY,

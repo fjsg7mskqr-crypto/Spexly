@@ -22,18 +22,21 @@ CREATE INDEX IF NOT EXISTS idx_integrations_provider ON integrations(provider);
 ALTER TABLE integrations ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users can only see their own integrations
+DROP POLICY IF EXISTS "Users can view their own integrations" ON integrations;
 CREATE POLICY "Users can view their own integrations"
   ON integrations
   FOR SELECT
   USING (auth.uid() = user_id);
 
 -- Policy: Users can insert their own integrations
+DROP POLICY IF EXISTS "Users can insert their own integrations" ON integrations;
 CREATE POLICY "Users can insert their own integrations"
   ON integrations
   FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
 -- Policy: Users can update their own integrations
+DROP POLICY IF EXISTS "Users can update their own integrations" ON integrations;
 CREATE POLICY "Users can update their own integrations"
   ON integrations
   FOR UPDATE
@@ -41,6 +44,7 @@ CREATE POLICY "Users can update their own integrations"
   WITH CHECK (auth.uid() = user_id);
 
 -- Policy: Users can delete their own integrations
+DROP POLICY IF EXISTS "Users can delete their own integrations" ON integrations;
 CREATE POLICY "Users can delete their own integrations"
   ON integrations
   FOR DELETE
@@ -55,6 +59,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS integrations_updated_at ON integrations;
 CREATE TRIGGER integrations_updated_at
   BEFORE UPDATE ON integrations
   FOR EACH ROW

@@ -198,7 +198,7 @@ if (useClaudeForImport() && process.env.ANTHROPIC_API_KEY) {
 
 ### 4.1 Database Migration ✅
 
-**New File:** `/supabase/migrations/20260211_add_integrations_table.sql`
+**New File:** `/supabase/migrations/202602110001_add_integrations_table.sql`
 
 **Schema:**
 ```sql
@@ -495,7 +495,7 @@ Each phase is independent and can be rolled back:
 ### New Files (12)
 1. `/src/lib/import/aiDetailExtractor.ts` - Two-stage field extraction
 2. `/src/lib/ai/claude.ts` - Claude API integration
-3. `/supabase/migrations/20260211_add_integrations_table.sql` - Database schema
+3. `/supabase/migrations/202602110001_add_integrations_table.sql` - Database schema
 4. `/src/lib/integrations/base.ts` - Base integration class
 5. `/src/lib/integrations/notion.ts` - Notion integration
 6. `/src/lib/integrations/figma.ts` - Figma integration

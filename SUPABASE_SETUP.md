@@ -159,6 +159,31 @@ export default function TestPage() {
 }
 ```
 
+## Waitlist Table Setup
+
+The landing page waitlist API writes to `public.waitlist_entries` and uses the
+`public.confirm_waitlist_email(token_input text)` function.
+
+Apply migrations so this exists in your Supabase project:
+
+```bash
+npx supabase db push
+```
+
+If you are applying manually in Supabase SQL Editor, run:
+
+- `supabase/migrations/202602110004_add_waitlist_entries.sql`
+
+After running the migration, test with:
+
+```bash
+curl -X POST http://localhost:3000/api/waitlist \
+  -H "content-type: application/json" \
+  -d '{"email":"test@example.com","sourcePage":"/"}'
+```
+
+Then verify rows exist in `public.waitlist_entries` in the Supabase Table Editor.
+
 ## Available Utilities
 
 ### Client Components

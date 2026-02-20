@@ -660,7 +660,7 @@ CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at DESC);
 - [ ] No console.log statements in production code
 - [ ] All TODO comments addressed or documented
 - [ ] Code commented where complex
-- [ ] Re-enable free tier enforcement in `src/app/actions/projects.ts` — `getUserTier()` currently hardcoded to return `'pro'` (bypasses all limits). Restore the original Supabase `profiles` table lookup and ensure the `profiles` migration has been run. Also run the `profiles` migration (`supabase/migrations/20260210_add_user_tier_system.sql`) against production Supabase before deploying.
+- [ ] Re-enable free tier enforcement in `src/app/actions/projects.ts` — `getUserTier()` currently hardcoded to return `'pro'` (bypasses all limits). Restore the original Supabase `profiles` table lookup and ensure the `profiles` migration has been run. Also run the `profiles` migration (`supabase/migrations/202602100002_add_user_tier_system.sql`) against production Supabase before deploying.
 - [ ] Remove dev upgrade files: `/src/app/dev-upgrade/`, `/src/app/api/dev-upgrade/`, `/src/app/actions/upgradeToProDEV.ts`
 
 **Security:**

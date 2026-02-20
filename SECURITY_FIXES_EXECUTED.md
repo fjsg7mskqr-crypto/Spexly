@@ -25,7 +25,7 @@ Following the comprehensive security assessment, **5 critical security fixes** h
 ### Fix 2: RLS Migration Created ✅
 **Issue**: Row Level Security migration file was missing
 **Action Taken**:
-- Created `/Spexly/supabase/migrations/20260210_enable_rls_projects.sql`
+- Created `/Spexly/supabase/migrations/202602100003_enable_rls_projects.sql`
 - Includes all 4 RLS policies (SELECT, INSERT, UPDATE, DELETE)
 - Added performance indexes
 - Added policy documentation
@@ -67,7 +67,7 @@ CREATE POLICY "Users can delete own projects" ON projects
 ### Fix 4: User Tier System Created ✅
 **Issue**: No database structure to support freemium model
 **Action Taken**:
-- Created `/Spexly/supabase/migrations/20260210_add_user_tier_system.sql`
+- Created `/Spexly/supabase/migrations/202602100002_add_user_tier_system.sql`
 - Creates `profiles` table with tier column (free/pro)
 - Enables RLS on profiles table
 - Auto-creates profile when user signs up (trigger)
@@ -128,7 +128,7 @@ CREATE TABLE public.profiles (
 1. Go to https://supabase.com/dashboard
 2. Select your Spexly project
 3. Navigate to **SQL Editor**
-4. Open `/Spexly/supabase/migrations/20260210_enable_rls_projects.sql`
+4. Open `/Spexly/supabase/migrations/202602100003_enable_rls_projects.sql`
 5. Copy all SQL content
 6. Paste into SQL Editor
 7. Click **Run**
@@ -151,7 +151,7 @@ WHERE schemaname = 'public' AND tablename = 'projects';
 
 **Instructions**:
 1. In Supabase SQL Editor
-2. Open `/Spexly/supabase/migrations/20260210_add_user_tier_system.sql`
+2. Open `/Spexly/supabase/migrations/202602100002_add_user_tier_system.sql`
 3. Copy all SQL content
 4. Paste into SQL Editor
 5. Click **Run**
@@ -245,8 +245,8 @@ After completing manual steps, verify:
 ## 📁 FILES MODIFIED
 
 ### Created Files
-1. `/Spexly/supabase/migrations/20260210_enable_rls_projects.sql`
-2. `/Spexly/supabase/migrations/20260210_add_user_tier_system.sql`
+1. `/Spexly/supabase/migrations/202602100003_enable_rls_projects.sql`
+2. `/Spexly/supabase/migrations/202602100002_add_user_tier_system.sql`
 3. `/SECURITY_FIXES_EXECUTED.md` (this file)
 
 ### Modified Files

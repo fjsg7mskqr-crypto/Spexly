@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { logError, RateLimitError } from '@/lib/errors';
 import { checkRateLimit, getClientIp, waitlistRateLimiter } from '@/lib/rate-limit/limiter';
-import { validateWaitlistSubmission } from '@/lib/waitlist/validation';
+import { validateWaitlistSubmission, type WaitlistSubmissionInput } from '@/lib/waitlist/validation';
 
 function createConfirmationToken(): string {
   const partA = crypto.randomUUID();
@@ -11,8 +11,14 @@ function createConfirmationToken(): string {
 
 export async function POST(request: Request) {
   try {
-    const payload = await request.json();
-    const validation = validateWaitlistSubmission(payload);
+    let payload: unknown;
+    try {
+      payload = await request.json();
+    } catch {
+      return Response.json({ ok: false, error: 'Invalid JSON payload' }, { status: 400 });
+    }
+
+    const validation = validateWaitlistSubmission(payload as WaitlistSubmissionInput);
 
     if (!validation.valid || !validation.data) {
       return Response.json(
@@ -30,10 +36,22 @@ export async function POST(request: Request) {
     }
 
     const ip = getClientIp(request.headers);
-    const rateLimitResult = await checkRateLimit(waitlistRateLimiter, ip);
+    const rateLimitResult = await checkRateLimit(waitlistRateLimiter, ip, {
+      allowWhenUnconfigured: true,
+    });
 
     if (!rateLimitResult.success) {
       throw new RateLimitError('Too many submissions. Please try again later.');
+    }
+
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      return Response.json(
+        {
+          ok: false,
+          error: 'Server configuration is incomplete (Supabase env vars missing).',
+        },
+        { status: 500 }
+      );
     }
 
     const supabase = await createClient();
@@ -57,6 +75,18 @@ export async function POST(request: Request) {
       // Unique violation on normalized email => already on waitlist.
       if (error.code === '23505') {
         return Response.json({ ok: true, status: 'already_joined' }, { status: 200 });
+      }
+
+      // Missing table/function typically means migrations have not been applied yet.
+      if (error.code === '42P01') {
+        logError(error, { action: 'waitlist.insert.table_missing', ip });
+        return Response.json(
+          {
+            ok: false,
+            error: 'Waitlist is not configured yet. Please contact support.',
+          },
+          { status: 500 }
+        );
       }
 
       logError(error, { action: 'waitlist.insert', ip });
@@ -85,10 +115,12 @@ export async function POST(request: Request) {
     }
 
     logError(error, { action: 'waitlist.post' });
+    const debugMessage =
+      process.env.NODE_ENV === 'development' && error instanceof Error ? ` (${error.message})` : '';
     return Response.json(
       {
         ok: false,
-        error: 'Unexpected error. Please try again.',
+        error: `Unexpected error. Please try again.${debugMessage}`,
       },
       { status: 500 }
     );

@@ -58,7 +58,7 @@ supabase db diff
 
 **Expected Output:**
 ```
-Applied migration: 20260211_add_integrations_table.sql
+Applied migration: 202602110001_add_integrations_table.sql
 ✓ integrations table created
 ✓ RLS policies added
 ✓ Indexes created
@@ -229,7 +229,7 @@ npm run supabase:types
 
 - **Implementation Details:** See `IMPLEMENTATION_SUMMARY.md`
 - **Environment Variables:** See `.env.integration.example`
-- **Database Schema:** See `supabase/migrations/20260211_add_integrations_table.sql`
+- **Database Schema:** See `supabase/migrations/202602110001_add_integrations_table.sql`
 
 ---
 

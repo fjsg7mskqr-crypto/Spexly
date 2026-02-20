@@ -153,14 +153,14 @@
           "title": "Apply task automation migration",
           "owner": "maintainer",
           "done": false,
-          "migration": "supabase/migrations/20260213_add_agent_task_automation.sql"
+          "migration": "supabase/migrations/202602130001_add_agent_task_automation.sql"
         },
         {
           "id": "p4_t3",
           "title": "Apply task node linking migration",
           "owner": "maintainer",
           "done": false,
-          "migration": "supabase/migrations/20260213_add_task_node_linking.sql"
+          "migration": "supabase/migrations/202602130002_add_task_node_linking.sql"
         },
         {
           "id": "p4_t4",

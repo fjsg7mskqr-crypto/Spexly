@@ -144,7 +144,10 @@ export const waitlistRateLimiter = redis
  */
 export async function checkRateLimit(
   limiter: Ratelimit | null,
-  identifier: string
+  identifier: string,
+  options?: {
+    allowWhenUnconfigured?: boolean;
+  }
 ): Promise<{ success: boolean; remaining?: number; reset?: number }> {
   // In development without Upstash configured, allow all requests
   if (!limiter) {
@@ -152,17 +155,29 @@ export async function checkRateLimit(
       console.warn('Rate limiting is disabled (Upstash not configured)');
       return { success: true };
     }
+    if (options?.allowWhenUnconfigured) {
+      console.warn('Rate limiting is disabled in production for this endpoint (Upstash not configured)');
+      return { success: true };
+    }
     // In production, rate limiting should be configured
     throw new Error('Rate limiting not configured');
   }
 
-  const { success, remaining, reset } = await limiter.limit(identifier);
+  try {
+    const { success, remaining, reset } = await limiter.limit(identifier);
 
-  return {
-    success,
-    remaining,
-    reset,
-  };
+    return {
+      success,
+      remaining,
+      reset,
+    };
+  } catch (error) {
+    if (options?.allowWhenUnconfigured) {
+      console.warn('Rate limiting check failed; allowing request for this endpoint', error);
+      return { success: true };
+    }
+    throw error;
+  }
 }
 
 /**

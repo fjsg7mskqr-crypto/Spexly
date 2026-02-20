@@ -7,24 +7,28 @@ ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users can only SELECT their own projects
 -- This prevents users from reading other users' project data
+DROP POLICY IF EXISTS "Users can view own projects" ON projects;
 CREATE POLICY "Users can view own projects"
 ON projects FOR SELECT TO authenticated
 USING (auth.uid() = user_id);
 
 -- Policy: Users can only INSERT with their own user_id
 -- This prevents users from creating projects under another user's ID
+DROP POLICY IF EXISTS "Users can create own projects" ON projects;
 CREATE POLICY "Users can create own projects"
 ON projects FOR INSERT TO authenticated
 WITH CHECK (auth.uid() = user_id);
 
 -- Policy: Users can only UPDATE their own projects
 -- Both USING and WITH CHECK ensure users can only modify their own data
+DROP POLICY IF EXISTS "Users can update own projects" ON projects;
 CREATE POLICY "Users can update own projects"
 ON projects FOR UPDATE TO authenticated
 USING (auth.uid() = user_id)
 WITH CHECK (auth.uid() = user_id);
 
 -- Policy: Users can only DELETE their own projects
+DROP POLICY IF EXISTS "Users can delete own projects" ON projects;
 CREATE POLICY "Users can delete own projects"
 ON projects FOR DELETE TO authenticated
 USING (auth.uid() = user_id);
