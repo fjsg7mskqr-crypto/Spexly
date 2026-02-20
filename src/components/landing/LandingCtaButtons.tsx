@@ -10,7 +10,7 @@ export function LandingCtaButtons() {
 
   return (
     <>
-      <div className="flex flex-wrap gap-3">
+      <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap">
         <motion.a
           href="#waitlist"
           whileHover={{ scale: 1.03 }}
@@ -22,7 +22,7 @@ export function LandingCtaButtons() {
               metadata: { placement: 'hero', target: 'waitlist-anchor' },
             });
           }}
-          className="rounded-lg bg-gradient-to-r from-cyan-300 to-blue-500 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:brightness-110"
+          className="w-full rounded-lg bg-gradient-to-r from-cyan-300 to-blue-500 px-5 py-3 text-center text-sm font-semibold text-slate-950 transition hover:brightness-110 sm:w-auto"
         >
           Join Waitlist
         </motion.a>
@@ -37,7 +37,7 @@ export function LandingCtaButtons() {
                 metadata: { placement: 'hero', target: 'demo-modal' },
               });
             }}
-            className="inline-block rounded-lg border border-slate-500 px-5 py-3 text-sm font-semibold text-slate-100 transition hover:border-slate-300"
+            className="inline-block w-full rounded-lg border border-slate-500 px-5 py-3 text-sm font-semibold text-slate-100 transition hover:border-slate-300 sm:w-auto"
           >
             Watch 45-second Demo
           </button>

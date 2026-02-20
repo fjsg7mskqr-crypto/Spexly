@@ -143,8 +143,8 @@ function FaqAccordion({
       onClick={() => setOpen(!open)}
       className="group w-full text-left"
     >
-      <div className="flex items-center justify-between rounded-2xl border border-slate-700/60 bg-slate-900/50 px-6 py-5 transition-colors hover:border-slate-600 hover:bg-slate-900/80">
-        <span className="pr-4 text-lg font-semibold text-slate-100">
+      <div className="flex items-center justify-between rounded-2xl border border-slate-700/60 bg-slate-900/50 px-4 py-4 transition-colors hover:border-slate-600 hover:bg-slate-900/80 sm:px-6 sm:py-5">
+        <span className="pr-4 text-base font-semibold text-slate-100 sm:text-lg">
           {question}
         </span>
         <motion.div
@@ -163,7 +163,7 @@ function FaqAccordion({
             transition={{ duration: 0.25 }}
             className="overflow-hidden"
           >
-            <p className="px-6 pb-4 pt-3 text-slate-300">{answer}</p>
+            <p className="px-4 pb-4 pt-3 text-sm text-slate-300 sm:px-6 sm:text-base">{answer}</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -268,33 +268,33 @@ export function LandingPageV2() {
       {/* ══════════════════════════════════════════════════════
           HERO
       ══════════════════════════════════════════════════════ */}
-      <section className="relative z-10 mx-auto w-full max-w-7xl px-6 pb-8 pt-16 sm:pt-24">
+      <section className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-8 pt-12 sm:px-6 sm:pt-24">
         {/* Nav-like top bar */}
         <AnimatedSection trigger="load" delay={0}>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <Image
               src="/spexly-logo-white.png"
               alt="Spexly"
               width={130}
               height={52}
               priority
-              className="h-auto w-28 sm:w-32"
+              className="h-auto w-24 sm:w-32"
             />
             <a
               href="#waitlist"
-              className="rounded-full border border-slate-600 px-4 py-1.5 text-xs font-semibold text-slate-300 transition hover:border-cyan-400 hover:text-cyan-300"
+              className="rounded-full border border-slate-600 px-3 py-2 text-xs font-semibold text-slate-300 transition hover:border-cyan-400 hover:text-cyan-300 sm:px-4 sm:py-1.5"
             >
               Get early access
             </a>
           </div>
         </AnimatedSection>
 
-        <div className="mt-16 grid items-center gap-12 lg:mt-24 lg:grid-cols-[1fr_1.3fr] lg:gap-16">
+        <div className="mt-10 grid items-center gap-8 sm:mt-14 lg:mt-24 lg:grid-cols-[1fr_1.3fr] lg:gap-16">
           {/* Left — Copy */}
-          <div className="space-y-7">
+          <div className="space-y-5 sm:space-y-7">
             <AnimatedSection trigger="load" delay={0.08}>
               <motion.span
-                className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-cyan-200"
+                className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-cyan-200 sm:px-4 sm:text-xs sm:tracking-widest"
                 animate={{ boxShadow: ['0 0 0px rgba(6,182,212,0)', '0 0 20px rgba(6,182,212,0.15)', '0 0 0px rgba(6,182,212,0)'] }}
                 transition={{ duration: 3, repeat: Infinity }}
               >
@@ -304,7 +304,7 @@ export function LandingPageV2() {
             </AnimatedSection>
 
             <AnimatedSection trigger="load" delay={0.15}>
-              <h1 className="text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl lg:text-[3.5rem]">
+              <h1 className="text-3xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl lg:text-[3.5rem]">
                 Stop burning credits.
                 <br />
                 <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
@@ -314,7 +314,7 @@ export function LandingPageV2() {
             </AnimatedSection>
 
             <AnimatedSection trigger="load" delay={0.25}>
-              <p className="max-w-lg text-lg leading-relaxed text-slate-300">
+              <p className="max-w-lg text-base leading-relaxed text-slate-300 sm:text-lg">
                 Spexly turns your raw idea into a visual blueprint — features,
                 prompts, architecture — so you can build with{' '}
                 <span className="font-semibold text-white">clarity</span> in
@@ -328,7 +328,7 @@ export function LandingPageV2() {
 
             {/* Tool trust bar */}
             <AnimatedSection trigger="load" delay={0.45}>
-              <div className="flex flex-wrap items-center gap-1.5 pt-2">
+              <div className="flex flex-wrap items-center gap-2 pt-1 sm:pt-2">
                 <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
                   Built&nbsp;for
                 </span>
@@ -338,7 +338,7 @@ export function LandingPageV2() {
                     initial={{ opacity: 0, x: -8 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.5 + t.delay }}
-                    className="rounded-md border border-slate-700/50 bg-slate-800/50 px-2.5 py-1 text-xs font-semibold text-slate-400 transition hover:border-cyan-500/30 hover:text-cyan-300"
+                    className="rounded-md border border-slate-700/50 bg-slate-800/50 px-2.5 py-1.5 text-xs font-semibold text-slate-400 transition hover:border-cyan-500/30 hover:text-cyan-300"
                   >
                     {t.name}
                   </motion.span>
@@ -372,21 +372,21 @@ export function LandingPageV2() {
               label="Feature"
               icon={Layers}
               color="#3b82f6"
-              className="-left-4 top-8 sm:-left-6"
+              className="hidden -left-4 top-8 sm:flex sm:-left-6"
               delay={0.7}
             />
             <FloatingBadge
               label="Prompt"
               icon={MessageSquare}
               color="#ec4899"
-              className="-right-3 top-1/3 sm:-right-5"
+              className="hidden -right-3 top-1/3 sm:flex sm:-right-5"
               delay={0.85}
             />
             <FloatingBadge
               label="Idea"
               icon={Lightbulb}
               color="#a855f7"
-              className="-bottom-3 left-12 sm:left-16"
+              className="hidden -bottom-3 left-12 sm:flex sm:left-16"
               delay={1.0}
             />
           </AnimatedSection>
@@ -396,7 +396,7 @@ export function LandingPageV2() {
       {/* ══════════════════════════════════════════════════════
           HOW IT WORKS — Compact step cards
       ══════════════════════════════════════════════════════ */}
-      <section className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-8 pt-16 sm:pb-12 sm:pt-24">
+      <section className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-6 pt-12 sm:px-6 sm:pb-12 sm:pt-24">
         <AnimatedSection>
           <div className="flex items-center gap-3">
             <Zap className="h-5 w-5 text-cyan-400" />
@@ -404,12 +404,12 @@ export function LandingPageV2() {
               How it works
             </p>
           </div>
-          <h2 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
+          <h2 className="mt-4 text-2xl font-extrabold tracking-tight sm:text-4xl">
             Idea to blueprint in minutes
           </h2>
         </AnimatedSection>
 
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid gap-4 sm:mt-12 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map((step, i) => (
             <AnimatedSection key={step.num} delay={i * 0.08}>
               <motion.div
@@ -457,16 +457,16 @@ export function LandingPageV2() {
       {/* ══════════════════════════════════════════════════════
           COMPARISON — Playful split
       ══════════════════════════════════════════════════════ */}
-      <section className="relative z-10 mx-auto w-full max-w-5xl px-6 py-10 sm:py-14">
+      <section className="relative z-10 mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
         <AnimatedSection>
           <p className="text-center text-xs font-bold uppercase tracking-[0.2em] text-slate-500">
             The difference
           </p>
         </AnimatedSection>
 
-        <div className="mt-10 grid gap-5 md:grid-cols-2">
+        <div className="mt-8 grid gap-4 sm:mt-10 sm:gap-5 md:grid-cols-2">
           <AnimatedSection delay={0}>
-            <div className="group relative overflow-hidden rounded-2xl border border-rose-500/20 bg-gradient-to-br from-rose-500/[0.07] to-transparent p-7 transition hover:border-rose-500/30">
+            <div className="group relative overflow-hidden rounded-2xl border border-rose-500/20 bg-gradient-to-br from-rose-500/[0.07] to-transparent p-5 transition hover:border-rose-500/30 sm:p-7">
               <XCircle className="mb-4 h-8 w-8 text-rose-400/70" />
               <h3 className="text-xl font-bold text-slate-100">
                 Without a plan
@@ -489,7 +489,7 @@ export function LandingPageV2() {
           </AnimatedSection>
 
           <AnimatedSection delay={0.1}>
-            <div className="group relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/[0.07] to-transparent p-7 transition hover:border-emerald-500/30">
+            <div className="group relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/[0.07] to-transparent p-5 transition hover:border-emerald-500/30 sm:p-7">
               <CheckCircle2 className="mb-4 h-8 w-8 text-emerald-400/70" />
               <h3 className="text-xl font-bold text-slate-100">
                 With Spexly
@@ -516,7 +516,7 @@ export function LandingPageV2() {
       {/* ══════════════════════════════════════════════════════
           NODE TYPES — Interactive explorer
       ══════════════════════════════════════════════════════ */}
-      <section className="relative z-10 mx-auto w-full max-w-6xl px-6 py-16 sm:py-24">
+      <section className="relative z-10 mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 sm:py-24">
         <AnimatedSection>
           <div className="flex items-center gap-3">
             <Layers className="h-5 w-5 text-violet-400" />
@@ -524,16 +524,16 @@ export function LandingPageV2() {
               Node types
             </p>
           </div>
-          <h2 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
+          <h2 className="mt-4 text-2xl font-extrabold tracking-tight sm:text-4xl">
             Everything gets its own node
           </h2>
-          <p className="mt-3 max-w-2xl text-lg text-slate-300">
+          <p className="mt-3 max-w-2xl text-base text-slate-300 sm:text-lg">
             Ideas, features, prompts, tech stack, notes — each with guided
             fields so nothing falls through the cracks.
           </p>
         </AnimatedSection>
 
-        <div className="mt-12 grid gap-8 lg:grid-cols-[280px_1fr]">
+        <div className="mt-8 grid gap-6 sm:mt-12 sm:gap-8 lg:grid-cols-[280px_1fr]">
           {/* Selector tabs */}
           <AnimatedSection delay={0.1}>
             <div className="flex flex-row gap-2 overflow-x-auto pb-2 lg:flex-col lg:gap-1.5 lg:overflow-visible lg:pb-0">
@@ -640,7 +640,7 @@ export function LandingPageV2() {
       {/* ══════════════════════════════════════════════════════
           FEATURE DEEP DIVES — Alternating bento
       ══════════════════════════════════════════════════════ */}
-      <section className="relative z-10 mx-auto w-full max-w-6xl space-y-20 px-6 py-16 sm:py-24">
+      <section className="relative z-10 mx-auto w-full max-w-6xl space-y-14 px-4 py-12 sm:space-y-20 sm:px-6 sm:py-24">
         <AnimatedSection>
           <div className="flex items-center gap-3">
             <Sparkles className="h-5 w-5 text-cyan-400" />
@@ -648,7 +648,7 @@ export function LandingPageV2() {
               Features
             </p>
           </div>
-          <h2 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
+          <h2 className="mt-4 text-2xl font-extrabold tracking-tight sm:text-4xl">
             Built for how you actually work
           </h2>
         </AnimatedSection>
@@ -669,14 +669,14 @@ export function LandingPageV2() {
                   section instantly. Keyboard shortcuts make demos smooth.
                 </p>
               </div>
-              <div className="flex gap-4">
+              <div className="flex flex-wrap gap-3 sm:gap-4">
                 <div className="overflow-hidden rounded-xl border border-slate-700/40">
                   <Image
                     src="/gallery-minimap.png"
                     alt="Mini map navigation"
                     width={374}
                     height={300}
-                    className="h-auto w-44"
+                    className="h-auto w-32 sm:w-44"
                     unoptimized
                   />
                 </div>
@@ -686,7 +686,7 @@ export function LandingPageV2() {
                     alt="Zoomed mini map"
                     width={388}
                     height={282}
-                    className="h-auto w-44"
+                    className="h-auto w-32 sm:w-44"
                     unoptimized
                   />
                 </div>
@@ -786,15 +786,15 @@ export function LandingPageV2() {
       {/* ══════════════════════════════════════════════════════
           SOCIAL PROOF
       ══════════════════════════════════════════════════════ */}
-      <section className="relative z-10 mx-auto w-full max-w-4xl px-6 py-12">
+      <section className="relative z-10 mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 sm:py-12">
         <AnimatedSection>
           <div className="flex flex-col items-center gap-4 text-center">
-            <div className="inline-flex items-center gap-2.5 rounded-full border border-cyan-400/20 bg-cyan-400/5 px-6 py-3">
+            <div className="inline-flex items-center gap-2.5 rounded-full border border-cyan-400/20 bg-cyan-400/5 px-4 py-2.5 sm:px-6 sm:py-3">
               <span className="relative flex h-2.5 w-2.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75" />
                 <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-cyan-400" />
               </span>
-              <span className="text-sm font-semibold text-cyan-200">
+              <span className="text-xs font-semibold text-cyan-200 sm:text-sm">
                 Builders are already on the waitlist
               </span>
             </div>
@@ -809,9 +809,9 @@ export function LandingPageV2() {
       {/* ══════════════════════════════════════════════════════
           FAQ — Accordion
       ══════════════════════════════════════════════════════ */}
-      <section className="relative z-10 mx-auto w-full max-w-3xl px-6 py-16 sm:py-24">
+      <section className="relative z-10 mx-auto w-full max-w-3xl px-4 py-12 sm:px-6 sm:py-24">
         <AnimatedSection>
-          <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+          <h2 className="text-2xl font-extrabold tracking-tight sm:text-4xl">
             Questions &amp; answers
           </h2>
         </AnimatedSection>
@@ -828,7 +828,7 @@ export function LandingPageV2() {
       {/* ══════════════════════════════════════════════════════
           BLOG TEASERS
       ══════════════════════════════════════════════════════ */}
-      <section className="relative z-10 mx-auto w-full max-w-5xl px-6 py-16">
+      <section className="relative z-10 mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
         <AnimatedSection>
           <div className="flex items-center gap-3">
             <FileText className="h-5 w-5 text-cyan-400" />
@@ -836,7 +836,7 @@ export function LandingPageV2() {
               From the blog
             </p>
           </div>
-          <h2 className="mt-4 text-3xl font-extrabold tracking-tight">
+          <h2 className="mt-4 text-2xl font-extrabold tracking-tight sm:text-3xl">
             Guides for builders
           </h2>
         </AnimatedSection>
@@ -872,7 +872,7 @@ export function LandingPageV2() {
       ══════════════════════════════════════════════════════ */}
       <section
         id="waitlist"
-        className="relative z-10 mx-auto w-full max-w-4xl px-6 py-20"
+        className="relative z-10 mx-auto w-full max-w-4xl px-4 py-14 sm:px-6 sm:py-20"
       >
         <AnimatedSection>
           <div className="relative overflow-hidden rounded-3xl border border-slate-700/60 bg-gradient-to-br from-slate-900 via-slate-900 to-cyan-950/30 p-8 sm:p-12">
@@ -881,10 +881,10 @@ export function LandingPageV2() {
             <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-blue-500/10 blur-[60px]" />
 
             <div className="relative">
-              <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+              <h2 className="text-2xl font-extrabold tracking-tight sm:text-4xl">
                 Ready to plan your next build?
               </h2>
-              <p className="mt-3 max-w-lg text-lg text-slate-300">
+              <p className="mt-3 max-w-lg text-base text-slate-300 sm:text-lg">
                 Join now for launch updates, weekly planning tips, and
                 first-wave beta invites.
               </p>
@@ -905,7 +905,7 @@ export function LandingPageV2() {
       {/* ══════════════════════════════════════════════════════
           FOOTER
       ══════════════════════════════════════════════════════ */}
-      <footer className="relative z-10 border-t border-slate-800 px-6 py-8 text-sm text-slate-300">
+      <footer className="relative z-10 border-t border-slate-800 px-4 py-8 text-sm text-slate-300 sm:px-6">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <Image
@@ -919,7 +919,7 @@ export function LandingPageV2() {
               Plan your app visually before you build.
             </span>
           </div>
-          <div className="flex items-center gap-5">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
             <Link href="/privacy" className="transition hover:text-white">
               Privacy
             </Link>
