@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { LandingPage } from '@/components/landing/LandingPage';
+import { LandingPageV2 } from '@/components/landing/LandingPageV2';
 
 export const metadata: Metadata = {
   title: 'Spec It Before You Ship It',
@@ -11,5 +11,5 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  return <LandingPage />;
+  return <LandingPageV2 />;
 }
