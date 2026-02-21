@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { EmailVerificationGate } from "@/components/auth/EmailVerificationGate";
 import { ToastContainer } from "@/components/ui/ToastContainer";
+import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://spexlyapp.com'),
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
     'vibe coding',
     'app planning tool',
     'prompt planning',
+    'vibecoding',
   ],
   openGraph: {
     title: 'Spexly — Visual Project Planner for Vibe Coding',
@@ -30,14 +32,6 @@ export const metadata: Metadata = {
     url: '/',
     siteName: 'Spexly',
     type: 'website',
-    images: [
-      {
-        url: '/gallery-canvas.png',
-        width: 1200,
-        height: 630,
-        alt: 'Spexly — Plan your vibe coding project visually',
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
@@ -46,7 +40,6 @@ export const metadata: Metadata = {
       'Stop burning AI credits on bad prompts. Map features, screens, and prompts visually before you build in Cursor, Bolt, or Claude.',
     site: '@novae1532',
     creator: '@novae1532',
-    images: ['/gallery-canvas.png'],
   },
   icons: {
     icon: '/spexly-logo.png',
@@ -66,6 +59,7 @@ export default function RootLayout({
           {children}
         </EmailVerificationGate>
         <ToastContainer />
+        <Analytics />
       </body>
     </html>
   );
