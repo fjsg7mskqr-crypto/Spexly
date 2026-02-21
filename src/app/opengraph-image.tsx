@@ -1,14 +1,15 @@
 import { ImageResponse } from 'next/og';
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 
+export const runtime = 'nodejs';
 export const alt = 'Spexly — Plan your vibe coding project visually';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
 export default async function OGImage() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://spexlyapp.com';
-  const logoResponse = await fetch(new URL('/spexly-logo-white.png', baseUrl));
-  const logoArrayBuffer = await logoResponse.arrayBuffer();
-  const logoBase64 = `data:image/png;base64,${Buffer.from(logoArrayBuffer).toString('base64')}`;
+  const logoData = await readFile(join(process.cwd(), 'public', 'spexly-logo-white.png'));
+  const logoBase64 = `data:image/png;base64,${logoData.toString('base64')}`;
 
   return new ImageResponse(
     (
