@@ -933,7 +933,7 @@ export function LandingPageV2() {
               Blog
             </Link>
             <a
-              href="https://x.com/spexlyapp"
+              href="https://x.com/novae1532"
               target="_blank"
               rel="noopener noreferrer"
               className="transition hover:text-white"
